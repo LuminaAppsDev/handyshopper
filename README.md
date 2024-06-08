@@ -1,4 +1,4 @@
- # HandyShopper
+# HandyShopper
 
 HandyShopper is a mobile application designed to help you keep track of your shopping needs in a simple and pragmatic way.
 
