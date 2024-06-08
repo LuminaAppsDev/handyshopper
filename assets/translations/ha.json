@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "Ƙara samfur",
+    "edit_product": "Shirya samfur",
+    "delete_product": "Share samfur",
+    "delete_confirmation": "Shin kuna da tabbacin cewa kuna so ku share wannan samfurin?",
+    "cancel": "Soke",
+    "update": "Sabunta",
+    "name": "Suna",
+    "quantity": "Adadin",
+    "price": "Farashi",
+    "need": "Bukata",
+    "all": "Duka",
+    "need_list": "Bukata",
+    "sort_by_name": "Ta suna",
+    "sort_by_quantity": "Ta adadin",
+    "sort_by_price": "Ta farashi",
+    "sort_manually": "Ta hannu",
+    "settings": "Saituna",
+    "general": "Janar",
+    "currency": "Kudi",
+    "language": "Harshe"
+  }
+  

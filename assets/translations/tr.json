@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "Ürün ekle",
+    "edit_product": "Ürünü düzenle",
+    "delete_product": "Ürünü sil",
+    "delete_confirmation": "Bu ürünü silmek istediğinizden emin misiniz?",
+    "cancel": "İptal",
+    "update": "Güncelle",
+    "name": "Ad",
+    "quantity": "Miktar",
+    "price": "Fiyat",
+    "need": "Gereksinim",
+    "all": "Tümü",
+    "need_list": "Gereksinim",
+    "sort_by_name": "Ada göre",
+    "sort_by_quantity": "Miktara göre",
+    "sort_by_price": "Fiyata göre",
+    "sort_manually": "Manuel olarak",
+    "settings": "Ayarlar",
+    "general": "Genel",
+    "currency": "Para birimi",
+    "language": "Dil"
+  }
+  

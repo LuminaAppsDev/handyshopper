@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "ਉਤਪਾਦ ਸ਼ਾਮਲ ਕਰੋ",
+    "edit_product": "ਉਤਪਾਦ ਸੰਪਾਦਿਤ ਕਰੋ",
+    "delete_product": "ਉਤਪਾਦ ਹਟਾਓ",
+    "delete_confirmation": "ਕੀ ਤੁਸੀਂ ਵਾਕਈ ਇਸ ਉਤਪਾਦ ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "update": "ਅੱਪਡੇਟ ਕਰੋ",
+    "name": "ਨਾਮ",
+    "quantity": "ਮਾਤਰਾ",
+    "price": "ਕੀਮਤ",
+    "need": "ਲੋੜ",
+    "all": "ਸਾਰੇ",
+    "need_list": "ਲੋੜ",
+    "sort_by_name": "ਨਾਮ ਨਾਲ",
+    "sort_by_quantity": "ਮਾਤਰਾ ਨਾਲ",
+    "sort_by_price": "ਕੀਮਤ ਨਾਲ",
+    "sort_manually": "ਮੈਨੁਅੱਲੀ",
+    "settings": "ਸੈਟਿੰਗਜ਼",
+    "general": "ਆਮ",
+    "currency": "ਮੁਦਰਾ",
+    "language": "ਭਾਸ਼ਾ"
+  }
+  

@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "தயாரிப்பைச் சேர்",
+    "edit_product": "தயாரிப்பை திருத்து",
+    "delete_product": "தயாரிப்பை நீக்கு",
+    "delete_confirmation": "இந்த தயாரிப்பை நீக்க விரும்புகிறீர்களா?",
+    "cancel": "ரத்து செய்",
+    "update": "புதுப்பி",
+    "name": "பெயர்",
+    "quantity": "அளவு",
+    "price": "விலை",
+    "need": "தேவை",
+    "all": "அனைத்தும்",
+    "need_list": "தேவை",
+    "sort_by_name": "பெயரால்",
+    "sort_by_quantity": "அளவால்",
+    "sort_by_price": "விலைபடி",
+    "sort_manually": "கைமுறையால்",
+    "settings": "அமைப்புகள்",
+    "general": "பொது",
+    "currency": "நாணயம்",
+    "language": "மொழி"
+  }
+  

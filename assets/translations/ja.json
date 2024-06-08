@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "商品を追加",
+    "edit_product": "商品を編集",
+    "delete_product": "商品を削除",
+    "delete_confirmation": "この商品を削除してもよろしいですか？",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "name": "名前",
+    "quantity": "数量",
+    "price": "価格",
+    "need": "必要",
+    "all": "すべて",
+    "need_list": "必要",
+    "sort_by_name": "名前順",
+    "sort_by_quantity": "数量順",
+    "sort_by_price": "価格順",
+    "sort_manually": "手動で",
+    "settings": "設定",
+    "general": "一般",
+    "currency": "通貨",
+    "language": "言語"
+  }
+  

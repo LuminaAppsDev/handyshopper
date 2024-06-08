@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "Ajouter un produit",
+    "edit_product": "Modifier le produit",
+    "delete_product": "Supprimer le produit",
+    "delete_confirmation": "Êtes-vous sûr de vouloir supprimer ce produit ?",
+    "cancel": "Annuler",
+    "update": "Mettre à jour",
+    "name": "Nom",
+    "quantity": "Quantité",
+    "price": "Prix",
+    "need": "Besoin",
+    "all": "Tous",
+    "need_list": "Besoin",
+    "sort_by_name": "Par nom",
+    "sort_by_quantity": "Par quantité",
+    "sort_by_price": "Par prix",
+    "sort_manually": "Manuellement",
+    "settings": "Paramètres",
+    "general": "Général",
+    "currency": "Monnaie",
+    "language": "Langue"
+  }
+  

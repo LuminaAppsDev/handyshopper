@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "添加产品",
+    "edit_product": "编辑产品",
+    "delete_product": "删除产品",
+    "delete_confirmation": "您确定要删除此产品吗？",
+    "cancel": "取消",
+    "update": "更新",
+    "name": "名称",
+    "quantity": "数量",
+    "price": "价格",
+    "need": "需要",
+    "all": "所有",
+    "need_list": "需要",
+    "sort_by_name": "按名称",
+    "sort_by_quantity": "按数量",
+    "sort_by_price": "按价格",
+    "sort_manually": "手动",
+    "settings": "设置",
+    "general": "一般",
+    "currency": "货币",
+    "language": "语言"
+  }
+  

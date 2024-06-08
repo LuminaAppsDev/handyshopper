@@ -1,0 +1,24 @@
+{
+    "title": "HandyShopper",
+    "add_product": "उत्पादन जोडा",
+    "edit_product": "उत्पादन संपादित करा",
+    "delete_product": "उत्पादन हटवा",
+    "delete_confirmation": "आपण हे उत्पादन हटवू इच्छिता याची खात्री आहे?",
+    "cancel": "रद्द करा",
+    "update": "अद्यतनित करा",
+    "name": "नाव",
+    "quantity": "प्रमाण",
+    "price": "किंमत",
+    "need": "गरज",
+    "all": "सर्व",
+    "need_list": "गरज",
+    "sort_by_name": "नावानुसार",
+    "sort_by_quantity": "प्रमाणानुसार",
+    "sort_by_price": "किमतीनुसार",
+    "sort_manually": "मॅन्युअली",
+    "settings": "सेटिंग्ज",
+    "general": "सामान्य",
+    "currency": "चलन",
+    "language": "भाषा"
+  }
+  
