@@ -6,6 +6,10 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+### Fixed
+
+- Unable to enter decimal numbers for price
+
 ### Changed
 
 - Flutter upgrade to 3.22.2

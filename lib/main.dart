@@ -339,7 +339,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                   TextField(
                     decoration: InputDecoration(labelText: AppLocalizations.of(context).translate('price'), hintText: 'Optional'),
                     controller: priceController,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}|,?\d{0,2}')),
                       LengthLimitingTextInputFormatter(12), // Limiting total digits including decimal
