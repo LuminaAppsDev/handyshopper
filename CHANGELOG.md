@@ -8,7 +8,12 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
-- Flutter Upgrade to 3.22.2
+- Flutter upgrade to 3.22.2
+- archive package upgrade to 3.6.1
+- flutter_launcher_icons package upgrade to 0.13.1
+- flutter_lints package upgrade to 4.0.0
+- image package upgrade to 4.2.0
+- lints package upgrade to 4.0.0
 
 ### Removed
 
