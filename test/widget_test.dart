@@ -9,11 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:handyshopper/main.dart';
+import 'package:handyshopper/providers/settings_provider.dart';
+
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+      final settingsProvider = SettingsProvider();
+        await settingsProvider.loadSettings();
+
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(settingsProvider: settingsProvider,));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

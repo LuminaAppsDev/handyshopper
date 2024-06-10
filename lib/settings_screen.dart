@@ -49,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
             // Language selection
             ListTile(
               title: Text(AppLocalizations.of(context).translate('language')),
-              subtitle: Text(settingsProvider.locale.languageCode.toUpperCase()),
+              subtitle: Text(settingsProvider.locale!.languageCode.toUpperCase()),
               onTap: () {
                 _showLanguageDialog(context, settingsProvider);
               },

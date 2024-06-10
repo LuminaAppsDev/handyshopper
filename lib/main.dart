@@ -8,12 +8,20 @@ import 'models/product.dart';
 import 'settings_screen.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize settings provider before running the app
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.loadSettings(); // Load settings
+
+  runApp(MyApp(settingsProvider: settingsProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+    final SettingsProvider settingsProvider;
+
+  const MyApp({super.key, required this.settingsProvider});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()..loadSettings()),
+        ChangeNotifierProvider(create: (_) => settingsProvider),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
