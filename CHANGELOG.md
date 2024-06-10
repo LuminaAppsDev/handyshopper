@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 - Unable to enter decimal numbers for price
+- Language settings are not loaded on app start
 
 ### Changed
 
