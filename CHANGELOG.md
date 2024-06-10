@@ -8,8 +8,16 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+### Changed
+
+### Removed
+
+## 1.0.1 - 2024-06-10
+
+### Fixed
+
 - Unable to enter decimal numbers for price
-- Language settings are not loaded on app start
+- Language settings are not loaded on app start (#1)
 
 ### Changed
 
@@ -19,8 +27,6 @@ All notable changes to this project are documented in this file.
 - flutter_lints package upgrade to 4.0.0
 - image package upgrade to 4.2.0
 - lints package upgrade to 4.0.0
-
-### Removed
 
 ## 1.0.0 - 2024-06-01
 
