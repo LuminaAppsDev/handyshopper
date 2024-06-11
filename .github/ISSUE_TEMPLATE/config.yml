@@ -1,14 +1,14 @@
 blank_issues_enabled: false
 contact_links:
   - name: English Bug Report
-    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?assignees=&labels=bug&template=english/bug_report.md&title=%5BIssue%5D%3A+
+    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?template=bug_report.yml
     about: Report a bug using the English template
   - name: English Feature Request
-    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?assignees=&labels=enhancement&template=english/feature_request.md&title=%5BFeature%20Request%5D%3A+
+    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?template=feature_request.yml
     about: Suggest a feature using the English template
   - name: German Bug Report
-    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?assignees=&labels=bug&template=german/fehlerbericht.md&title=%5BIssue%5D%3A+
+    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?template=fehlerbericht.yml
     about: Report a bug using the German template
   - name: German Feature Request
-    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?assignees=&labels=enhancement&template=german/funktionsanforderung.md&title=%5BFeature%20Request%5D%3A+
+    url: https://github.com/LuminaAppsDev/handyshopper/issues/new?template=funktionsanforderung.yml
     about: Suggest a feature using the German template
