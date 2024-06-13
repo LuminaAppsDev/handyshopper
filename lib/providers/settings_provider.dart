@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider with ChangeNotifier {
   Locale? _locale;
-  String _currencySymbol = '€';
+  String _currencySymbol = '\$';
 
   Locale? get locale => _locale;
   String get currencySymbol => _currencySymbol;
@@ -18,7 +18,7 @@ class SettingsProvider with ChangeNotifier {
     final countryCode = prefs.getString('countryCode');
     _locale = Locale(languageCode, countryCode);
 
-    _currencySymbol = prefs.getString('currencySymbol') ?? '€';
+    _currencySymbol = prefs.getString('currencySymbol') ?? '\$';
 
     notifyListeners();
   }

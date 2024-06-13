@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Privacy Policy available within the app
+
 ### Fixed
 
 ### Changed

@@ -13,6 +13,29 @@ HandyShopper is a mobile application designed to help you keep track of your sho
 
 ## Screenshots
 
+## Localizations
+
+- English (en)
+- Bengali (bn)
+- German (de)
+- Spanish (es)
+- Persian (fa)
+- French (fr)
+- Hindi (hi)
+- Italian (it)
+- Japanese (ja)
+- Korean (ko)
+- Marathi (mr)
+- Punjabi (pa)
+- Portuguese (pt)
+- Russian (ru)
+- Tamil (ta)
+- Telugu (te)
+- Turkish (tr)
+- Urdu (ur)
+- Vietnamese (vi)
+- Chinese (zh)
+
 ## Getting Started
 
 ### Prerequisites

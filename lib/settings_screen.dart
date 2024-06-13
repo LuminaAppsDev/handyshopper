@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'providers/settings_provider.dart';
 import 'localization/app_localizations.dart';
+import 'privacy_policy_screen.dart'; // Import the privacy policy screen
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -52,6 +53,20 @@ class SettingsScreen extends StatelessWidget {
               subtitle: Text(settingsProvider.locale!.languageCode.toUpperCase()),
               onTap: () {
                 _showLanguageDialog(context, settingsProvider);
+              },
+            ),
+            const SizedBox(height: 20),
+            // Privacy Policy entry
+            ListTile(
+              title: Text(AppLocalizations.of(context).translate('privacy_policy')),
+              trailing: const Icon(Icons.arrow_forward_ios), // Add arrow icon
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyScreen(),
+                  ),
+                );
               },
             ),
           ],
