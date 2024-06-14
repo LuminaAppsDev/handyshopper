@@ -138,4 +138,10 @@ class ProductProvider with ChangeNotifier {
     
     notifyListeners();
   }
+
+  double getTotalPrice() {
+    return _products
+        .where((product) => product.need)
+        .fold(0.0, (total, product) => total + (product.price ?? 0) * product.quantity);
+  }
 }

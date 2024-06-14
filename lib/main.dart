@@ -19,7 +19,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-    final SettingsProvider settingsProvider;
+  final SettingsProvider settingsProvider;
 
   const MyApp({super.key, required this.settingsProvider});
 
@@ -84,8 +84,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -203,39 +201,52 @@ class ProductListScreenState extends State<ProductListScreen> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                _showAddProductDialog(context);
-              },
-            ),
-            TextButton(
-              onPressed: () {
-                _pageController.jumpToPage(0);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: _currentPageIndex == 0 ? Colors.blue : Colors.black,
-              ),
-              child: Text(AppLocalizations.of(context).translate('all')),
-            ),
-            TextButton(
-              onPressed: () {
-                _pageController.jumpToPage(1);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: _currentPageIndex == 1 ? Colors.blue : Colors.black,
-              ),
-              child: Text(AppLocalizations.of(context).translate('need_list')),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.sort),
-              onPressed: () => _showSortingOptions(context),
-            ),
-          ],
+        child: Consumer<ProductProvider>(
+          builder: (context, provider, child) {
+            final totalPrice = provider.getTotalPrice();
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    _showAddProductDialog(context);
+                  },
+                ),
+                TextButton(
+                  onPressed: () {
+                    _pageController.jumpToPage(0);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: _currentPageIndex == 0 ? Colors.blue : Colors.black,
+                  ),
+                  child: Text(AppLocalizations.of(context).translate('all')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _pageController.jumpToPage(1);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: _currentPageIndex == 1 ? Colors.blue : Colors.black,
+                  ),
+                  child: Text(AppLocalizations.of(context).translate('need_list')),
+                ),
+                if (_currentPageIndex == 1) // Show total only in "Need" list
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '${AppLocalizations.of(context).translate('total')}: ${Provider.of<SettingsProvider>(context).currencySymbol}${totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.sort),
+                  onPressed: () => _showSortingOptions(context),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

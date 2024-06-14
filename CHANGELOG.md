@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - Privacy Policy available within the app
+- Display sum of all product prices
 
 ### Fixed
 
