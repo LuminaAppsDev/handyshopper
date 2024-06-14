@@ -202,19 +202,33 @@ class ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
+      body: Column(
         children: [
-          _buildProductList(context, false), // "All" list
-          _buildProductList(context, true), // "Need" list
-        ],
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Consumer<ProductProvider>(
-          builder: (context, provider, child) {
-            final totalPrice = provider.getTotalPrice();
-            return Row(
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              children: [
+                _buildProductList(context, false), // "All" list
+                _buildProductList(context, true), // "Need" list
+              ],
+            ),
+          ),
+          if (_currentPageIndex == 1) // Show total only in "Need" list
+            Consumer<ProductProvider>(
+              builder: (context, provider, child) {
+                final totalPrice = provider.getTotalPrice();
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '${AppLocalizations.of(context).translate('total')}: ${Provider.of<SettingsProvider>(context).currencySymbol}${totalPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                );
+              },
+            ),
+          BottomAppBar(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
@@ -244,23 +258,15 @@ class ProductListScreenState extends State<ProductListScreen> {
                   child:
                       Text(AppLocalizations.of(context).translate('need_list')),
                 ),
-                if (_currentPageIndex == 1) // Show total only in "Need" list
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      '${AppLocalizations.of(context).translate('total')}: ${Provider.of<SettingsProvider>(context).currencySymbol}${totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.sort),
                   onPressed: () => _showSortingOptions(context),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
