@@ -13,6 +13,8 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Allow to enter float numbers for quantity instead of int only
+
 ### Removed
 
 ## 1.0.1 - 2024-06-10

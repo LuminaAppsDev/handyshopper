@@ -33,8 +33,9 @@ class DatabaseHelper {
     // Open the database, creating it if it doesn't exist
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -44,11 +45,32 @@ class DatabaseHelper {
       CREATE TABLE $tableName (
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnName TEXT NOT NULL,
-        $columnQuantity INTEGER NOT NULL,
+        $columnQuantity REAL NOT NULL,
         $columnPrice REAL,
         $columnNeed INTEGER NOT NULL
       )
     ''');
+  }
+
+  // Upgrade the database schema
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE products RENAME TO old_products');
+      await db.execute('''
+        CREATE TABLE products (
+          $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+          $columnName TEXT NOT NULL,
+          $columnQuantity REAL NOT NULL,
+          $columnPrice REAL,
+          $columnNeed INTEGER NOT NULL
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO products ($columnId, $columnName, $columnQuantity, $columnPrice, $columnNeed)
+        SELECT $columnId, $columnName, CAST($columnQuantity AS REAL), $columnPrice, $columnNeed FROM old_products
+      ''');
+      await db.execute('DROP TABLE old_products');
+    }
   }
 
   // Insert a new product into the database
@@ -88,4 +110,3 @@ class DatabaseHelper {
     );
   }
 }
-

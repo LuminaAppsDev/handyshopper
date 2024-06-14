@@ -45,7 +45,8 @@ class MyApp extends StatelessWidget {
               brightness: Brightness.dark,
             ),
             themeMode: ThemeMode.system, // Use system theme mode
-            locale: settingsProvider.locale, // Use the locale from SettingsProvider
+            locale:
+                settingsProvider.locale, // Use the locale from SettingsProvider
             supportedLocales: const [
               // List of supported locales
               Locale('en', 'US'),
@@ -125,36 +126,45 @@ class ProductListScreenState extends State<ProductListScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.sort_by_alpha),
-              title: Text(AppLocalizations.of(context).translate('sort_by_name')),
+              title:
+                  Text(AppLocalizations.of(context).translate('sort_by_name')),
               onTap: () {
                 Navigator.pop(context);
-                Provider.of<ProductProvider>(context, listen: false).sortProducts(SortOption.alphabetical);
+                Provider.of<ProductProvider>(context, listen: false)
+                    .sortProducts(SortOption.alphabetical);
               },
             ),
             ListTile(
               leading: const Icon(Icons.sort),
-              title: Text(AppLocalizations.of(context).translate('sort_by_quantity')),
+              title: Text(
+                  AppLocalizations.of(context).translate('sort_by_quantity')),
               onTap: () {
                 Navigator.pop(context);
-                Provider.of<ProductProvider>(context, listen: false).sortProducts(SortOption.quantity);
+                Provider.of<ProductProvider>(context, listen: false)
+                    .sortProducts(SortOption.quantity);
               },
             ),
             ListTile(
               leading: const Icon(Icons.attach_money),
-              title: Text(AppLocalizations.of(context).translate('sort_by_price')),
+              title:
+                  Text(AppLocalizations.of(context).translate('sort_by_price')),
               onTap: () {
                 Navigator.pop(context);
-                Provider.of<ProductProvider>(context, listen: false).sortProducts(SortOption.price);
+                Provider.of<ProductProvider>(context, listen: false)
+                    .sortProducts(SortOption.price);
               },
             ),
             ListTile(
               leading: const Icon(Icons.drag_handle),
-              title: Text(AppLocalizations.of(context).translate('sort_manually')),
+              title:
+                  Text(AppLocalizations.of(context).translate('sort_manually')),
               onTap: () {
                 Navigator.pop(context);
-                Provider.of<ProductProvider>(context, listen: false).sortProducts(SortOption.manual);
+                Provider.of<ProductProvider>(context, listen: false)
+                    .sortProducts(SortOption.manual);
                 setState(() {
-                  _currentPageIndex = _currentPageIndex; // Rebuild to show reorderable list
+                  _currentPageIndex =
+                      _currentPageIndex; // Rebuild to show reorderable list
                 });
               },
             ),
@@ -197,7 +207,7 @@ class ProductListScreenState extends State<ProductListScreen> {
         onPageChanged: _onPageChanged,
         children: [
           _buildProductList(context, false), // "All" list
-          _buildProductList(context, true),  // "Need" list
+          _buildProductList(context, true), // "Need" list
         ],
       ),
       bottomNavigationBar: BottomAppBar(
@@ -218,7 +228,8 @@ class ProductListScreenState extends State<ProductListScreen> {
                     _pageController.jumpToPage(0);
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: _currentPageIndex == 0 ? Colors.blue : Colors.black,
+                    foregroundColor:
+                        _currentPageIndex == 0 ? Colors.blue : Colors.black,
                   ),
                   child: Text(AppLocalizations.of(context).translate('all')),
                 ),
@@ -227,9 +238,11 @@ class ProductListScreenState extends State<ProductListScreen> {
                     _pageController.jumpToPage(1);
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: _currentPageIndex == 1 ? Colors.blue : Colors.black,
+                    foregroundColor:
+                        _currentPageIndex == 1 ? Colors.blue : Colors.black,
                   ),
-                  child: Text(AppLocalizations.of(context).translate('need_list')),
+                  child:
+                      Text(AppLocalizations.of(context).translate('need_list')),
                 ),
                 if (_currentPageIndex == 1) // Show total only in "Need" list
                   Padding(
@@ -257,7 +270,9 @@ class ProductListScreenState extends State<ProductListScreen> {
     return Consumer<ProductProvider>(
       builder: (context, provider, child) {
         if (provider.products.isEmpty) {
-          return Center(child: Text(AppLocalizations.of(context).translate('no_products')));
+          return Center(
+              child:
+                  Text(AppLocalizations.of(context).translate('no_products')));
         }
 
         final products = showNeedOnly
@@ -281,12 +296,14 @@ class ProductListScreenState extends State<ProductListScreen> {
               leading: Checkbox(
                 value: showNeedOnly ? false : product.need,
                 onChanged: (value) {
-                  product.need = showNeedOnly ? !(value ?? false) : (value ?? false);
+                  product.need =
+                      showNeedOnly ? !(value ?? false) : (value ?? false);
                   provider.updateProduct(product);
                 },
               ),
               title: Text(product.name),
-              subtitle: Text('Q: ${product.quantity}${product.price != null ? ' - ${settingsProvider.currencySymbol}${product.price!.toStringAsFixed(2)}' : ''}'),
+              subtitle: Text(
+                  'Q: ${product.quantity}${product.price != null ? ' - ${settingsProvider.currencySymbol}${product.price!.toStringAsFixed(2)}' : ''}'),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () {
@@ -304,18 +321,21 @@ class ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _showAddProductDialog(BuildContext context, {Product? product}) {
-    final productProvider = Provider.of<ProductProvider>(context, listen: false);
+    final productProvider =
+        Provider.of<ProductProvider>(context, listen: false);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         String name = product?.name ?? '';
-        int quantity = product?.quantity ?? 1;
+        double quantity = product?.quantity ?? 1.0;
         double? price = product?.price;
         bool need = product?.need ?? true;
 
-        final quantityController = TextEditingController(text: quantity.toString());
-        final priceController = TextEditingController(text: price?.toString() ?? '');
+        final quantityController =
+            TextEditingController(text: quantity.toString());
+        final priceController =
+            TextEditingController(text: price?.toString() ?? '');
 
         return AlertDialog(
           title: Text(product == null
@@ -327,41 +347,60 @@ class ProductListScreenState extends State<ProductListScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    decoration: InputDecoration(labelText: AppLocalizations.of(context).translate('name')),
+                    decoration: InputDecoration(
+                        labelText:
+                            AppLocalizations.of(context).translate('name')),
                     controller: TextEditingController(text: name),
                     inputFormatters: [LengthLimitingTextInputFormatter(64)],
                     onChanged: (value) {
                       name = value;
                     },
                     onSubmitted: (_) {
-                      _submitProduct(context, productProvider, product, name, quantity, price, need);
+                      _submitProduct(context, productProvider, product, name,
+                          quantity, price, need);
                     },
                   ),
                   TextField(
-                    decoration: InputDecoration(labelText: AppLocalizations.of(context).translate('quantity')),
+                    decoration: InputDecoration(
+                        labelText:
+                            AppLocalizations.of(context).translate('quantity')),
                     controller: quantityController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}|,?\d{0,2}')),
+                      LengthLimitingTextInputFormatter(12),
+                    ],
                     onTap: () {
                       quantityController.clear();
                     },
                     onChanged: (value) {
-                      quantity = int.tryParse(value) ?? 1;
+                      // Convert comma to dot for international users
+                      value = value.replaceAll(',', '.');
+                      quantity = double.tryParse(value) ?? 1.0;
                       if (quantity > 9999) {
                         quantity = 9999;
                       }
                     },
                     onSubmitted: (_) {
-                      _submitProduct(context, productProvider, product, name, quantity, price, need);
+                      _submitProduct(context, productProvider, product, name,
+                          quantity, price, need);
                     },
                   ),
                   TextField(
-                    decoration: InputDecoration(labelText: AppLocalizations.of(context).translate('price'), hintText: 'Optional'),
+                    decoration: InputDecoration(
+                        labelText:
+                            AppLocalizations.of(context).translate('price'),
+                        hintText: 'Optional'),
                     controller: priceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}|,?\d{0,2}')),
-                      LengthLimitingTextInputFormatter(12), // Limiting total digits including decimal
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}|,?\d{0,2}')),
+                      LengthLimitingTextInputFormatter(
+                          12), // Limiting total digits including decimal
                     ],
                     onTap: () {
                       priceController.clear();
@@ -376,7 +415,8 @@ class ProductListScreenState extends State<ProductListScreen> {
                       }
                     },
                     onSubmitted: (_) {
-                      _submitProduct(context, productProvider, product, name, quantity, price, need);
+                      _submitProduct(context, productProvider, product, name,
+                          quantity, price, need);
                     },
                   ),
                   CheckboxListTile(
@@ -401,9 +441,12 @@ class ProductListScreenState extends State<ProductListScreen> {
             ),
             TextButton(
               onPressed: () {
-                _submitProduct(context, productProvider, product, name, quantity, price, need);
+                _submitProduct(context, productProvider, product, name,
+                    quantity, price, need);
               },
-              child: Text(product == null ? AppLocalizations.of(context).translate('add_product') : AppLocalizations.of(context).translate('update')),
+              child: Text(product == null
+                  ? AppLocalizations.of(context).translate('add_product')
+                  : AppLocalizations.of(context).translate('update')),
             ),
           ],
         );
@@ -411,10 +454,22 @@ class ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  void _submitProduct(BuildContext context, ProductProvider provider, Product? product, String name, int quantity, double? price, bool need) {
+  void _submitProduct(
+      BuildContext context,
+      ProductProvider provider,
+      Product? product,
+      String name,
+      double quantity,
+      double? price,
+      bool need) {
     if (name.isNotEmpty) {
       if (product == null) {
-        final newProduct = Product(name: name, quantity: quantity, price: price != null ? double.parse(price.toStringAsFixed(2)) : null, need: need);
+        final newProduct = Product(
+            name: name,
+            quantity: quantity,
+            price:
+                price != null ? double.parse(price.toStringAsFixed(2)) : null,
+            need: need);
         provider.addProduct(newProduct);
       } else {
         final updatedProduct = Product(
@@ -437,7 +492,8 @@ class ProductListScreenState extends State<ProductListScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context).translate('delete_product')),
-          content: Text(AppLocalizations.of(context).translate('delete_confirmation')),
+          content: Text(
+              AppLocalizations.of(context).translate('delete_confirmation')),
           actions: [
             TextButton(
               onPressed: () {
@@ -447,11 +503,13 @@ class ProductListScreenState extends State<ProductListScreen> {
             ),
             TextButton(
               onPressed: () {
-                Provider.of<ProductProvider>(context, listen: false).deleteProduct(productId);
+                Provider.of<ProductProvider>(context, listen: false)
+                    .deleteProduct(productId);
                 Navigator.of(context).pop();
                 setState(() {});
               },
-              child: Text(AppLocalizations.of(context).translate('delete_product')),
+              child: Text(
+                  AppLocalizations.of(context).translate('delete_product')),
             ),
           ],
         );

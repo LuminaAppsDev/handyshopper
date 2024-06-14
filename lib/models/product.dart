@@ -2,7 +2,7 @@ class Product {
   // Define the fields of the Product class
   int? id; // The unique identifier for the product
   String name; // The name of the product
-  int quantity; // The quantity of the product
+  double quantity; // The quantity of the product
   double? price; // The price of the product (optional)
   bool need; // Indicates whether the product is needed
 
@@ -19,7 +19,8 @@ class Product {
   factory Product.fromMap(Map<String, dynamic> json) => Product(
         id: json['id'],
         name: json['name'],
-        quantity: json['quantity'],
+        quantity:
+            (json['quantity'] as num).toDouble(), // Ensure conversion to double
         price: json['price'],
         need: json['need'] == 1, // Convert integer to boolean
       );

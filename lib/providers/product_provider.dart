@@ -7,7 +7,7 @@ import '../models/product.dart';
 enum SortOption { alphabetical, quantity, price, manual }
 
 class ProductProvider with ChangeNotifier {
-  // List to hold all products
+// List to hold all products
   List<Product> _products = [];
   late Database _db;
 
@@ -28,7 +28,8 @@ class ProductProvider with ChangeNotifier {
       return Product(
         id: maps[i]['id'],
         name: maps[i]['name'],
-        quantity: maps[i]['quantity'],
+        quantity: (maps[i]['quantity'] as num)
+            .toDouble(), // Ensure conversion to double
         price: maps[i]['price'],
         need: maps[i]['need'] == 1,
       );
@@ -39,10 +40,13 @@ class ProductProvider with ChangeNotifier {
     if (sortOption == 'manual') {
       final order = prefs.getStringList('manualOrder') ?? [];
       if (order.isNotEmpty) {
-        _products.sort((a, b) => order.indexOf(a.id.toString()).compareTo(order.indexOf(b.id.toString())));
+        _products.sort((a, b) => order
+            .indexOf(a.id.toString())
+            .compareTo(order.indexOf(b.id.toString())));
       }
     } else {
-      sortProducts(SortOption.values.firstWhere((e) => e.toString() == 'SortOption.$sortOption'));
+      sortProducts(SortOption.values
+          .firstWhere((e) => e.toString() == 'SortOption.$sortOption'));
     }
 
     // Notify listeners about the change
@@ -52,12 +56,25 @@ class ProductProvider with ChangeNotifier {
   Future<Database> _initDb() async {
     return openDatabase(
       join(await getDatabasesPath(), 'product_database.db'),
+      version: 2,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE products(id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL, need INTEGER)',
+          'CREATE TABLE products(id INTEGER PRIMARY KEY, name TEXT, quantity REAL, price REAL, need INTEGER)',
         );
       },
-      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE products RENAME TO old_products');
+          await db.execute(
+            'CREATE TABLE products(id INTEGER PRIMARY KEY, name TEXT, quantity REAL, price REAL, need INTEGER)',
+          );
+          await db.execute(
+            'INSERT INTO products (id, name, quantity, price, need) '
+            'SELECT id, name, CAST(quantity AS REAL), price, need FROM old_products',
+          );
+          await db.execute('DROP TABLE old_products');
+        }
+      },
     );
   }
 
@@ -105,7 +122,7 @@ class ProductProvider with ChangeNotifier {
 
     switch (option) {
       case SortOption.alphabetical:
-      // Method to sort products by name
+        // Method to sort products by name
         _products.sort((a, b) => a.name.compareTo(b.name));
         break;
       case SortOption.quantity:
@@ -117,31 +134,35 @@ class ProductProvider with ChangeNotifier {
         _products.sort((a, b) => a.price?.compareTo(b.price ?? 0) ?? 0);
         break;
       case SortOption.manual:
-      // Method to manually reorder products and save the order persistently
+        // Method to manually reorder products and save the order persistently
         final order = prefs.getStringList('manualOrder') ?? [];
         if (order.isNotEmpty) {
-          _products.sort((a, b) => order.indexOf(a.id.toString()).compareTo(order.indexOf(b.id.toString())));
+          _products.sort((a, b) => order
+              .indexOf(a.id.toString())
+              .compareTo(order.indexOf(b.id.toString())));
         }
         break;
     }
     notifyListeners();
   }
 
-  Future<void> updateProductOrder(List<Product> sortedProducts, {bool setManual = false}) async {
+  Future<void> updateProductOrder(List<Product> sortedProducts,
+      {bool setManual = false}) async {
     _products = sortedProducts;
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('manualOrder', _products.map((p) => p.id.toString()).toList());
+    prefs.setStringList(
+        'manualOrder', _products.map((p) => p.id.toString()).toList());
 
     if (setManual) {
-      prefs.setString('sortOption', SortOption.manual.toString().split('.').last);
+      prefs.setString(
+          'sortOption', SortOption.manual.toString().split('.').last);
     }
-    
+
     notifyListeners();
   }
 
   double getTotalPrice() {
-    return _products
-        .where((product) => product.need)
-        .fold(0.0, (total, product) => total + (product.price ?? 0) * product.quantity);
+    return _products.where((product) => product.need).fold(0.0,
+        (total, product) => total + (product.price ?? 0) * product.quantity);
   }
 }
