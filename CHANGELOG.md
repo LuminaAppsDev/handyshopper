@@ -6,16 +6,22 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- Privacy Policy available within the app
-- Display sum of all product prices
-
 ### Fixed
 
 ### Changed
 
-- Allow to enter float numbers for quantity instead of int only
-
 ### Removed
+
+## 1.1.0 - 2024-06-14
+
+### Added
+
+- Privacy Policy available within the app
+- Display sum of all product prices
+
+### Changed
+
+- Allow to enter float numbers for quantity instead of int only
 
 ## 1.0.1 - 2024-06-10
 
