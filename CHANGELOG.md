@@ -49,9 +49,3 @@ All notable changes to this project are documented in this file.
 - Settings screen.
 - Sorting functionality.
 - Several translations.
-
-### Fixed
-
-### Changed
-
-### Removed
