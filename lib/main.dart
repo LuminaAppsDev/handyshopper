@@ -296,10 +296,10 @@ class ProductListScreenState extends State<ProductListScreen> {
                       ),
                     ],
                   ),
-                  child: const Text(
-                    'Use the + button to add items to the list.',
+                  child: Text(
+                  AppLocalizations.of(context).translate('no_products'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
