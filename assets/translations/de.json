@@ -9,9 +9,9 @@
   "name": "Name",
   "quantity": "Menge",
   "price": "Preis",
-  "need": "Brauchen",
+  "need": "Benötigt",
   "all": "Alle",
-  "need_list": "Brauchen",
+  "need_list": "Benötigt",
   "sort_by_name": "Nach Name",
   "sort_by_quantity": "Nach Menge",
   "sort_by_price": "Nach Preis",
@@ -21,5 +21,6 @@
   "currency": "Währung",
   "language": "Sprache",
   "privacy_policy": "Datenschutzrichtlinie",
-  "total": "Gesamt"
+  "total": "Gesamt",
+  "no_products": "Verwenden Sie die + Taste, um Artikel zur Liste hinzuzufügen."
 }

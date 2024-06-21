@@ -21,5 +21,6 @@
   "currency": "通貨",
   "language": "言語",
   "privacy_policy": "プライバシーポリシー",
-  "total": "合計"
+  "total": "合計",
+  "no_products": "リストにアイテムを追加するには + ボタンを使用します。"
 }

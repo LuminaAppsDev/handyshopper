@@ -276,9 +276,36 @@ class ProductListScreenState extends State<ProductListScreen> {
     return Consumer<ProductProvider>(
       builder: (context, provider, child) {
         if (provider.products.isEmpty) {
-          return Center(
-              child:
-                  Text(AppLocalizations.of(context).translate('no_products')));
+          return Column(
+            children: [
+              const Spacer(),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset:
+                            const Offset(0, 3), // changes position of shadow
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Use the + button to add items to the list.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+              const Spacer(),
+            ],
+          );
         }
 
         final products = showNeedOnly
@@ -297,6 +324,9 @@ class ProductListScreenState extends State<ProductListScreen> {
             });
           },
           children: products.map((product) {
+            String quantityDisplay = product.quantity % 1 == 0
+                ? product.quantity.toInt().toString()
+                : product.quantity.toString();
             return ListTile(
               key: ValueKey(product.id),
               leading: Checkbox(
@@ -309,7 +339,7 @@ class ProductListScreenState extends State<ProductListScreen> {
               ),
               title: Text(product.name),
               subtitle: Text(
-                  'Q: ${product.quantity}${product.price != null ? ' - ${settingsProvider.currencySymbol}${product.price!.toStringAsFixed(2)}' : ''}'),
+                  'Q: $quantityDisplay${product.price != null ? ' - ${settingsProvider.currencySymbol}${product.price!.toStringAsFixed(2)}' : ''}'),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () {

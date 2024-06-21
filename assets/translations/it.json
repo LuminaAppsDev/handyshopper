@@ -21,5 +21,6 @@
   "currency": "Valuta",
   "language": "Lingua",
   "privacy_policy": "Politica sulla riservatezza",
-  "total": "Totale"
+  "total": "Totale",
+  "no_products": "Usa il pulsante + per aggiungere elementi alla lista."
 }
