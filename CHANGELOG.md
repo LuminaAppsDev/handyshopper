@@ -10,10 +10,14 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+### Removed
+
+## 1.1.1 - 2024-06-24
+
+### Changed
+
 - Tutorial message for initial empty list
 - Display full numbers for quantity as int
-
-### Removed
 
 ## 1.1.0 - 2024-06-14
 
