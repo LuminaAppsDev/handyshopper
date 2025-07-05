@@ -288,7 +288,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                     borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
+                        color: Colors.grey.withValues(alpha: 0.5),
                         spreadRadius: 2,
                         blurRadius: 5,
                         offset:
