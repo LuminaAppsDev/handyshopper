@@ -12,6 +12,13 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
+## 1.3.0 - 2025-10-03
+
+### Changed
+
+- Flutter upgrade to 3.35.5
+- Android 16k pages compatibility
+
 ## 1.2.0 - 2025-07-05
 
 ### Changed
