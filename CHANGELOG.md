@@ -12,6 +12,12 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
+## 1.3.1 - 2025-12-31
+
+- Flutter upgrade to 3.38.5
+
+### Changed
+
 ## 1.3.0 - 2025-10-03
 
 ### Changed
