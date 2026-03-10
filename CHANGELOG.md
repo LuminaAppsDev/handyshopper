@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Flutter upgrade to 3.41.4
+
 ### Added
 
 ### Fixed
