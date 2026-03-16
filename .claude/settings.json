@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(dart format:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "WebSearch",
+      "WebFetch(domain:pub.dev)",
+      "Bash(flutter pub:*)"
     ]
   }
 }
