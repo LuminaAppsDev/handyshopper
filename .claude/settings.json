@@ -5,7 +5,8 @@
       "Bash(dart analyze:*)",
       "WebSearch",
       "WebFetch(domain:pub.dev)",
-      "Bash(flutter pub:*)"
+      "Bash(flutter pub:*)",
+      "Bash(flutter --version)"
     ]
   }
 }

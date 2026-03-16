@@ -59,7 +59,8 @@ keyPassword=MyKeyPassw0rd
 keyAlias=play-store_release
 storeFile=play-store_release-key.keystore
 
-The actual key file needs to be placed at "android/play-store_release-key.keystore".
+The actual key file needs to be placed at
+"android/app/play-store_release-key.keystore".
 
 ### Installation
 

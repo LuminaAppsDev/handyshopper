@@ -4,9 +4,6 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
-- Flutter upgrade to 3.41.4
-- Migration from flutter_markdown to flutter_markdown_plus
-
 ### Added
 
 ### Fixed
@@ -15,11 +12,19 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
-## 1.3.1 - 2025-12-31
-
-- Flutter upgrade to 3.38.5
+## 1.4.0 - 2026-03-16
 
 ### Changed
+
+- Flutter upgrade to 3.41.4
+- Improved code quality
+- Migration from flutter_markdown to flutter_markdown_plus
+
+## 1.3.1 - 2025-12-31
+
+### Changed
+
+- Flutter upgrade to 3.38.5
 
 ## 1.3.0 - 2025-10-03
 
