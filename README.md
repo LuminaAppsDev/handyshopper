@@ -49,6 +49,18 @@ HandyShopper is a mobile application designed to help you keep track of your sho
 - Flutter SDK
 - Dart SDK
 
+### Play Store signing
+
+The Android build is signed with a key defined in "android/key.properties" with
+the following syntax:
+
+storePassword=MyStorePassw0rd
+keyPassword=MyKeyPassw0rd
+keyAlias=play-store_release
+storeFile=play-store_release-key.keystore
+
+The actual key file needs to be placed at "android/play-store_release-key.keystore".
+
 ### Installation
 
 1. **Clone the repository**:

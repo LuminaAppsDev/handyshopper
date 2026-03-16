@@ -1,36 +1,44 @@
+/// A product in the shopping list.
 class Product {
-  // Define the fields of the Product class
-  int? id; // The unique identifier for the product
-  String name; // The name of the product
-  double quantity; // The quantity of the product
-  double? price; // The price of the product (optional)
-  bool need; // Indicates whether the product is needed
-
-  // Constructor for the Product class
+  /// Creates a new [Product].
   Product({
-    this.id,
     required this.name,
     required this.quantity,
-    this.price,
     required this.need,
+    this.id,
+    this.price,
   });
 
-  // Create a Product object from a map (used when retrieving data from the database)
+  /// Creates a [Product] from a database map.
   factory Product.fromMap(Map<String, dynamic> json) => Product(
-        id: json['id'],
-        name: json['name'],
-        quantity:
-            (json['quantity'] as num).toDouble(), // Ensure conversion to double
-        price: json['price'],
-        need: json['need'] == 1, // Convert integer to boolean
+        id: json['id'] as int?,
+        name: json['name'] as String,
+        quantity: (json['quantity'] as num).toDouble(),
+        price: (json['price'] as num?)?.toDouble(),
+        need: json['need'] == 1,
       );
 
-  // Convert a Product object to a map (used when inserting or updating data in the database)
+  /// The unique identifier for the product.
+  int? id;
+
+  /// The name of the product.
+  String name;
+
+  /// The quantity of the product.
+  double quantity;
+
+  /// The price of the product (optional).
+  double? price;
+
+  /// Whether the product is needed.
+  bool need;
+
+  /// Converts this [Product] to a database map.
   Map<String, dynamic> toMap() => {
         'id': id,
         'name': name,
         'quantity': quantity,
         'price': price,
-        'need': need ? 1 : 0, // Convert boolean to integer
+        'need': need ? 1 : 0,
       };
 }
