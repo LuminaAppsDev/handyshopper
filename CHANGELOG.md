@@ -10,6 +10,8 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Flutter upgrade to 3.44.0
+
 ### Removed
 
 ## 1.4.0 - 2026-03-16
