@@ -14,10 +14,9 @@ void main() {
     return json.keys.cast<String>().toSet();
   }
 
-  test('every locale is a subset of the canonical en.json key set', () {
-    // en.json is the canonical superset of keys; other locales may lag behind
-    // (missing keys fall back to English at runtime) but must never contain an
-    // orphan key that does not exist in en.json (catches typos / stale keys).
+  test('every locale has exactly the canonical en.json key set', () {
+    // All locales are fully translated, so each must match en.json's keys
+    // exactly — no missing keys (untranslated) and no orphans (typos/stale).
     final enKeys = keysOf('$dir/en.json');
     expect(enKeys, isNotEmpty);
 
@@ -27,11 +26,12 @@ void main() {
         .where((f) => f.path.endsWith('.json'));
 
     for (final file in files) {
-      final orphans = keysOf(file.path).difference(enKeys);
+      final keys = keysOf(file.path);
       expect(
-        orphans,
-        isEmpty,
-        reason: 'Orphan keys in ${file.path} not present in en.json: $orphans',
+        keys,
+        enKeys,
+        reason: '${file.path}: missing ${enKeys.difference(keys)}, '
+            'orphan ${keys.difference(enKeys)}',
       );
     }
   });
