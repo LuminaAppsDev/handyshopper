@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/shopping_list.dart';
 import 'package:handyshopper/providers/category_provider.dart';
 import 'package:handyshopper/providers/item_provider.dart';
 import 'package:handyshopper/providers/list_provider.dart';
@@ -57,7 +58,7 @@ class ItemListScreenState extends State<ItemListScreen> {
     );
   }
 
-  void _showSortingOptions(BuildContext context) {
+  void _showSortingOptions(BuildContext context, {required bool showsPrice}) {
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
     unawaited(
       showModalBottomSheet<void>(
@@ -87,16 +88,18 @@ class ItemListScreenState extends State<ItemListScreen> {
                   unawaited(itemProvider.sortItems(SortOption.quantity));
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.attach_money),
-                title: Text(
-                  AppLocalizations.of(sheetContext).translate('sort_by_price'),
+              if (showsPrice)
+                ListTile(
+                  leading: const Icon(Icons.attach_money),
+                  title: Text(
+                    AppLocalizations.of(sheetContext)
+                        .translate('sort_by_price'),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    unawaited(itemProvider.sortItems(SortOption.price));
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  unawaited(itemProvider.sortItems(SortOption.price));
-                },
-              ),
               ListTile(
                 leading: const Icon(Icons.drag_handle),
                 title: Text(
@@ -116,8 +119,12 @@ class ItemListScreenState extends State<ItemListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final listName = context.watch<ListProvider>().activeList?.name ??
-        AppLocalizations.of(context).translate('title');
+    final activeList = context.watch<ListProvider>().activeList;
+    final listName =
+        activeList?.name ?? AppLocalizations.of(context).translate('title');
+    // Price is a shopping-list concept; other styles hide it.
+    final showsPrice =
+        (activeList?.style ?? ListStyle.shopping) == ListStyle.shopping;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -140,12 +147,22 @@ class ItemListScreenState extends State<ItemListScreen> {
               controller: _pageController,
               onPageChanged: _onPageChanged,
               children: [
-                _buildItemList(context, showNeedOnly: false),
-                _buildItemList(context, showNeedOnly: true),
+                _buildItemList(
+                  context,
+                  showNeedOnly: false,
+                  showsPrice: showsPrice,
+                ),
+                _buildItemList(
+                  context,
+                  showNeedOnly: true,
+                  showsPrice: showsPrice,
+                ),
               ],
             ),
           ),
-          if (_currentPageIndex == 1)
+          // The needed-items total is shown only on the "Need" tab, and only
+          // for shopping-style lists.
+          if (_currentPageIndex == 1 && showsPrice)
             Consumer<ItemProvider>(
               builder: (context, provider, child) {
                 final totalPrice = provider.getTotalPrice();
@@ -170,16 +187,18 @@ class ItemListScreenState extends State<ItemListScreen> {
                 TextButton(
                   onPressed: () => _pageController.jumpToPage(0),
                   style: TextButton.styleFrom(
-                    foregroundColor:
-                        _currentPageIndex == 0 ? Colors.blue : Colors.black,
+                    foregroundColor: _currentPageIndex == 0
+                        ? Colors.blue
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
                   child: Text(AppLocalizations.of(context).translate('all')),
                 ),
                 TextButton(
                   onPressed: () => _pageController.jumpToPage(1),
                   style: TextButton.styleFrom(
-                    foregroundColor:
-                        _currentPageIndex == 1 ? Colors.blue : Colors.black,
+                    foregroundColor: _currentPageIndex == 1
+                        ? Colors.blue
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
                   child: Text(
                     AppLocalizations.of(context).translate('need_list'),
@@ -188,7 +207,8 @@ class ItemListScreenState extends State<ItemListScreen> {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.sort),
-                  onPressed: () => _showSortingOptions(context),
+                  onPressed: () =>
+                      _showSortingOptions(context, showsPrice: showsPrice),
                 ),
               ],
             ),
@@ -248,6 +268,7 @@ class ItemListScreenState extends State<ItemListScreen> {
   Widget _buildItemList(
     BuildContext context, {
     required bool showNeedOnly,
+    required bool showsPrice,
   }) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final categoryIcons = {
@@ -317,7 +338,7 @@ class ItemListScreenState extends State<ItemListScreen> {
             final quantityDisplay = item.quantity % 1 == 0
                 ? item.quantity.toInt().toString()
                 : item.quantity.toString();
-            final priceStr = item.price != null
+            final priceStr = showsPrice && item.price != null
                 ? ' - ${settingsProvider.currencySymbol}'
                     '${item.price!.toStringAsFixed(2)}'
                 : '';

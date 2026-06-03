@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/shopping_list.dart';
 import 'package:handyshopper/providers/category_provider.dart';
 import 'package:handyshopper/providers/item_provider.dart';
+import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
 import 'package:handyshopper/screens/category_screen.dart';
 import 'package:handyshopper/screens/note_editor_screen.dart';
@@ -89,6 +91,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         (double.tryParse(_quantityController.text.replaceAll(',', '.')) ?? 1.0)
             .clamp(0, 9999)
             .toDouble();
+    // When the price field is hidden (non-shopping styles) the controller keeps
+    // the item's existing value, so saving preserves rather than clears it.
     final rawPrice =
         double.tryParse(_priceController.text.replaceAll(',', '.'));
     final price = rawPrice == null
@@ -163,6 +167,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.item != null;
     final currency = context.watch<SettingsProvider>().currencySymbol;
+    // Price is a shopping-list concept; other styles hide it.
+    final showsPrice = (context.watch<ListProvider>().activeList?.style ??
+            ListStyle.shopping) ==
+        ListStyle.shopping;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -195,19 +203,21 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               LengthLimitingTextInputFormatter(12),
             ],
           ),
-          TextField(
-            controller: _priceController,
-            decoration: InputDecoration(
-              labelText: _t('price'),
-              prefixText: '$currency ',
-              hintText: 'Optional',
+          if (showsPrice)
+            TextField(
+              controller: _priceController,
+              decoration: InputDecoration(
+                labelText: _t('price'),
+                prefixText: '$currency ',
+                hintText: 'Optional',
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                _decimalFormatter,
+                LengthLimitingTextInputFormatter(12),
+              ],
             ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              _decimalFormatter,
-              LengthLimitingTextInputFormatter(12),
-            ],
-          ),
           const SizedBox(height: 12),
           _buildCategoryRow(),
           CheckboxListTile(
