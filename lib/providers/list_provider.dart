@@ -99,6 +99,15 @@ class ListProvider with ChangeNotifier {
     await load();
   }
 
+  /// Sets the emoji [icon] of the list with [id] (`null` clears it).
+  Future<void> setIcon(int id, String? icon) async {
+    final list = _lists.firstWhere((l) => l.id == id)
+      ..icon = icon
+      ..updatedAt = DateTime.now().millisecondsSinceEpoch;
+    await _db.updateList(list);
+    await load();
+  }
+
   /// Deletes the list with [id] (and all its contents).
   Future<void> deleteList(int id) async {
     await _db.deleteList(id);

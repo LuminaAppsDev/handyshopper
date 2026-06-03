@@ -555,6 +555,24 @@ class DatabaseService {
     return db.insert('categories', category.toMap()..remove('id'));
   }
 
+  /// Updates [category]'s persisted columns.
+  Future<void> updateCategory(Category category) async {
+    final db = await database;
+    await db.update(
+      'categories',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
+  }
+
+  /// Deletes the category with [id]. Items in it revert to uncategorized via
+  /// the `ON DELETE SET NULL` foreign key.
+  Future<void> deleteCategory(int id) async {
+    final db = await database;
+    await db.delete('categories', where: 'id = ?', whereArgs: [id]);
+  }
+
   /// Returns the stores in [listId] ordered by manual position.
   Future<List<Store>> getStores(int listId) async {
     final db = await database;
@@ -740,9 +758,13 @@ class DatabaseService {
         const [];
   }
 
+  /// Largest accepted length for any imported text field, bounding the
+  /// per-field memory cost of a hostile import.
+  static const int maxImportStringLength = 20000;
+
   /// Builds an insert map containing only [allowed] keys, coercing each value
-  /// to a SQLite-bindable primitive (booleans become 0/1; lists, maps and other
-  /// non-primitives are dropped).
+  /// to a SQLite-bindable primitive (booleans become 0/1; over-long strings are
+  /// truncated; lists, maps and other non-primitives are dropped).
   Map<String, Object?> _sanitize(
     Map<String, dynamic> src,
     Set<String> allowed,
@@ -753,7 +775,11 @@ class DatabaseService {
         continue;
       }
       final value = src[key];
-      if (value == null || value is num || value is String) {
+      if (value is String) {
+        out[key] = value.length > maxImportStringLength
+            ? value.substring(0, maxImportStringLength)
+            : value;
+      } else if (value == null || value is num) {
         out[key] = value;
       } else if (value is bool) {
         out[key] = value ? 1 : 0;

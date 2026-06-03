@@ -98,6 +98,30 @@ void main() {
     await service.close();
   });
 
+  test('import truncates an over-long text field', () async {
+    final service = newService();
+    final hostile = {
+      'lists': [
+        {
+          'name': 'A' * (DatabaseService.maxImportStringLength + 500),
+          'items': [
+            {
+              'name': 'Item',
+              'note': 'B' * (DatabaseService.maxImportStringLength + 500),
+            },
+          ],
+        },
+      ],
+    };
+    await service.importData(hostile);
+    final list =
+        (await service.getLists()).firstWhere((l) => l.name.startsWith('A'));
+    expect(list.name.length, DatabaseService.maxImportStringLength);
+    final items = await service.getItems(list.id!);
+    expect(items.single.note!.length, DatabaseService.maxImportStringLength);
+    await service.close();
+  });
+
   test('import rejects a file exceeding the list cap', () async {
     final service = newService();
     final tooMany = {

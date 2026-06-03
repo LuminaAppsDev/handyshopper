@@ -41,5 +41,20 @@
   "backup_all": "Alle Listen sichern",
   "restore": "Wiederherstellen / Importieren",
   "imported_lists": "Listen importiert",
-  "import_failed": "Import fehlgeschlagen"
+  "import_failed": "Import fehlgeschlagen",
+  "category": "Kategorie",
+  "categories": "Kategorien",
+  "edit_categories": "Kategorien bearbeiten",
+  "new_category": "Neue Kategorie",
+  "category_name": "Kategoriename",
+  "uncategorized": "Ohne Kategorie",
+  "all_categories": "Alle Kategorien",
+  "choose_icon": "Symbol wählen",
+  "no_categories": "Noch keine Kategorien. Tippe auf +, um eine zu erstellen.",
+  "delete_category": "Kategorie löschen",
+  "delete_category_confirm": "Diese Kategorie löschen? Ihre Artikel werden zu \"Ohne Kategorie\".",
+  "note": "Notiz",
+  "save": "Speichern",
+  "none": "Keins",
+  "item_details": "Artikeldetails"
 }

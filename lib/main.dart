@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
+import 'package:handyshopper/providers/category_provider.dart';
 import 'package:handyshopper/providers/item_provider.dart';
 import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
@@ -52,6 +53,11 @@ class MyApp extends StatelessWidget {
           create: (ctx) => ItemProvider(ctx.read<DatabaseService>()),
           update: (ctx, listProvider, itemProvider) =>
               itemProvider!..setActiveList(listProvider.activeList),
+        ),
+        ChangeNotifierProxyProvider<ListProvider, CategoryProvider>(
+          create: (ctx) => CategoryProvider(ctx.read<DatabaseService>()),
+          update: (ctx, listProvider, categoryProvider) =>
+              categoryProvider!..setActiveList(listProvider.activeListId),
         ),
         ChangeNotifierProvider.value(value: settingsProvider),
       ],

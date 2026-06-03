@@ -12,6 +12,7 @@ import 'package:handyshopper/providers/settings_provider.dart';
 import 'package:handyshopper/screens/item_list_screen.dart';
 import 'package:handyshopper/services/share_service.dart';
 import 'package:handyshopper/settings_screen.dart';
+import 'package:handyshopper/widgets/emoji_picker.dart';
 import 'package:provider/provider.dart';
 
 /// The home screen: the collection of lists ("databases").
@@ -102,7 +103,12 @@ class _ListsScreenState extends State<ListsScreen> {
           return ListView(
             children: provider.lists.map((list) {
               return ListTile(
-                leading: Icon(_iconFor(list.style)),
+                leading: list.icon == null
+                    ? Icon(_iconFor(list.style))
+                    : Text(
+                        list.icon!,
+                        style: const TextStyle(fontSize: 24),
+                      ),
                 title: Text(list.name),
                 trailing: _buildListMenu(list),
                 onTap: () => unawaited(_openList(list)),
@@ -124,6 +130,8 @@ class _ListsScreenState extends State<ListsScreen> {
         switch (value) {
           case 'rename':
             unawaited(_showRenameDialog(list));
+          case 'icon':
+            unawaited(_pickListIcon(list));
           case 'copy':
             unawaited(context.read<ListProvider>().copyList(list.id!));
           case 'delete':
@@ -136,6 +144,7 @@ class _ListsScreenState extends State<ListsScreen> {
       },
       itemBuilder: (context) => [
         PopupMenuItem(value: 'rename', child: Text(_t('rename'))),
+        PopupMenuItem(value: 'icon', child: Text(_t('choose_icon'))),
         PopupMenuItem(value: 'copy', child: Text(_t('copy'))),
         PopupMenuItem(value: 'delete', child: Text(_t('delete_list'))),
         PopupMenuItem(value: 'share', child: Text(_t('share_as_text'))),
@@ -283,6 +292,15 @@ class _ListsScreenState extends State<ListsScreen> {
     } finally {
       controller.dispose();
     }
+  }
+
+  Future<void> _pickListIcon(ShoppingList list) async {
+    final provider = context.read<ListProvider>();
+    final emoji = await showEmojiPicker(context);
+    if (emoji == null) {
+      return; // dismissed
+    }
+    await provider.setIcon(list.id!, emoji.isEmpty ? null : emoji);
   }
 
   Future<void> _confirmDelete(ShoppingList list) async {

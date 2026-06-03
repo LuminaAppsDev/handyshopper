@@ -136,4 +136,31 @@ void main() {
     // Original list is untouched.
     expect((await service.getItems(listId)).single.id, itemId);
   });
+
+  test('item note and category persist', () async {
+    final catId =
+        await service.insertCategory(Category(listId: listId, name: 'Food'));
+    final id = await service.insertItem(
+      Item(listId: listId, name: 'Milk', note: 'organic', categoryId: catId),
+    );
+    final item = (await service.getItems(listId)).firstWhere((i) => i.id == id);
+    expect(item.note, 'organic');
+    expect(item.categoryId, catId);
+  });
+
+  test('updateCategory and deleteCategory', () async {
+    final id =
+        await service.insertCategory(Category(listId: listId, name: 'Food'));
+
+    await service.updateCategory(
+      Category(id: id, listId: listId, name: 'Groceries', icon: '🥦'),
+    );
+    var cats = await service.getCategories(listId);
+    expect(cats.single.name, 'Groceries');
+    expect(cats.single.icon, '🥦');
+
+    await service.deleteCategory(id);
+    cats = await service.getCategories(listId);
+    expect(cats, isEmpty);
+  });
 }

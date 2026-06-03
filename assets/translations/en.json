@@ -41,5 +41,20 @@
   "backup_all": "Back up all lists",
   "restore": "Restore / Import",
   "imported_lists": "Lists imported",
-  "import_failed": "Import failed"
+  "import_failed": "Import failed",
+  "category": "Category",
+  "categories": "Categories",
+  "edit_categories": "Edit Categories",
+  "new_category": "New Category",
+  "category_name": "Category name",
+  "uncategorized": "Uncategorized",
+  "all_categories": "All Categories",
+  "choose_icon": "Choose icon",
+  "no_categories": "No categories yet. Tap + to create one.",
+  "delete_category": "Delete category",
+  "delete_category_confirm": "Delete this category? Its items become uncategorized.",
+  "note": "Note",
+  "save": "Save",
+  "none": "None",
+  "item_details": "Item Details"
 }
