@@ -183,8 +183,8 @@ class _ListsScreenState extends State<ListsScreen> {
   Future<void> _pickListIcon(ShoppingList list) async {
     final provider = context.read<ListProvider>();
     final emoji = await showEmojiPicker(context);
-    if (emoji == null) {
-      return; // dismissed
+    if (emoji == null || !mounted) {
+      return; // dismissed, or the screen went away while picking
     }
     await provider.setIcon(list.id!, emoji.isEmpty ? null : emoji);
   }

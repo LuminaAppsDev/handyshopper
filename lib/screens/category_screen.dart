@@ -89,8 +89,8 @@ class CategoryScreen extends StatelessWidget {
     Category category,
   ) async {
     final emoji = await showEmojiPicker(context);
-    if (emoji == null) {
-      return; // dismissed
+    if (emoji == null || !context.mounted) {
+      return; // dismissed, or the screen went away while picking
     }
     await provider.setIcon(category.id!, emoji.isEmpty ? null : emoji);
   }
