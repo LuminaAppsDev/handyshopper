@@ -10,9 +10,53 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
-- Flutter upgrade to 3.44.0
-
 ### Removed
+
+## 2.0.0 - 2026-06-03
+
+A ground-up rebuild bringing the depth of the classic Palm OS HandyShopper to
+the app, on a new relational data model with zero-data-loss migration from 1.x.
+
+### Added
+
+- Multiple shopping lists ("databases"), each with its own items, categories,
+  stores and settings; list styles (shopping / to-do / dated / check) and emoji
+  icons.
+- Copy a list, share it as readable text or an importable file, and back up /
+  restore whole-app or per-list data as JSON.
+- Custom categories with emoji icons; assign items and filter the list by
+  category.
+- Per-item notes via a dedicated note editor.
+- A full-screen item detail editor (replacing the old add/edit dialog).
+- Stores with a price and aisle per store, price comparison across stores
+  (cheapest highlighted), and a store selector that re-prices the list.
+- VAT / sales tax: per-list tax rate plus an optional second tax, in add-on
+  (sales-tax) or inclusive (VAT) mode.
+- Checkout screen that tallies subtotal, tax and total and marks items
+  purchased.
+- Item priority (1–5), units, base aisle, and per-item dates for dated lists.
+- Configurable item-row columns and extra sort options (priority, aisle, date).
+- Complete translations across all 20 supported languages.
+
+### Changed
+
+- Rebuilt on a relational SQLite schema (lists, categories, stores, items,
+  per-store prices) owned by a single service, with versioned migrations
+  (v1 → v4) and no data loss.
+- Lists-as-home navigation and a per-list settings screen.
+- Project license changed from 0BSD to MIT.
+- README rewritten for 2.0.
+- Flutter upgrade to 3.44.0.
+- Added a test suite covering the data layer, migrations, providers, tax math,
+  backup round-trips, and localization key parity.
+
+### Fixed
+
+- "All / Need" tab labels were invisible in dark mode.
+
+### Dependencies
+
+- Added `share_plus`, `file_picker`, and `sqflite_common_ffi` (dev).
 
 ## 1.4.0 - 2026-03-16
 
