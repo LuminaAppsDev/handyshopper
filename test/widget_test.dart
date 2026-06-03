@@ -1,38 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test: boots the app over an in-memory database and mocked
+// preferences, and verifies the main screen renders.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/main.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (tester) async {
+  setUpAll(sqfliteFfiInit);
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  testWidgets('app boots and shows the title and empty state', (tester) async {
     final settingsProvider = SettingsProvider();
     await settingsProvider.loadSettings();
 
-    // Build our app and trigger a frame.
     await tester.pumpWidget(
       MyApp(
         settingsProvider: settingsProvider,
+        databaseService: DatabaseService(
+          factory: databaseFactoryFfi,
+          path: inMemoryDatabasePath,
+        ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('HandyShopper'), findsOneWidget);
+    expect(
+      find.text('Use the + button to add items to the list.'),
+      findsOneWidget,
+    );
   });
 }

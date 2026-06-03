@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
-import 'package:handyshopper/models/product.dart';
-import 'package:handyshopper/providers/product_provider.dart';
+import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/providers/item_provider.dart';
+import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
 import 'package:handyshopper/settings_screen.dart';
 import 'package:provider/provider.dart';
@@ -23,17 +25,37 @@ Future<void> main() async {
 /// Root widget that configures providers, theming, and localization.
 class MyApp extends StatelessWidget {
   /// Creates a [MyApp] with the given [settingsProvider].
-  const MyApp({required this.settingsProvider, super.key});
+  ///
+  /// [databaseService] may be supplied to inject a test database; when omitted
+  /// a default on-device [DatabaseService] is created.
+  const MyApp({
+    required this.settingsProvider,
+    this.databaseService,
+    super.key,
+  });
 
   /// The settings provider initialized before app launch.
   final SettingsProvider settingsProvider;
+
+  /// An optional injected database service (used by tests).
+  final DatabaseService? databaseService;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => settingsProvider),
+        Provider<DatabaseService>(
+          create: (_) => databaseService ?? DatabaseService(),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => ListProvider(ctx.read<DatabaseService>()),
+        ),
+        ChangeNotifierProxyProvider<ListProvider, ItemProvider>(
+          create: (ctx) => ItemProvider(ctx.read<DatabaseService>()),
+          update: (ctx, listProvider, itemProvider) =>
+              itemProvider!..setActiveList(listProvider.activeList),
+        ),
+        ChangeNotifierProvider.value(value: settingsProvider),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
@@ -77,7 +99,7 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const ProductListScreen(), // Set the home screen
+            home: const ItemListScreen(), // Set the home screen
             debugShowCheckedModeBanner: false, // Hide the debug banner
           );
         },
@@ -86,29 +108,19 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// The main screen displaying the product list with "All" and "Need" tabs.
-class ProductListScreen extends StatefulWidget {
-  /// Creates a [ProductListScreen].
-  const ProductListScreen({super.key});
+/// The main screen displaying the item list with "All" and "Need" tabs.
+class ItemListScreen extends StatefulWidget {
+  /// Creates an [ItemListScreen].
+  const ItemListScreen({super.key});
 
   @override
-  ProductListScreenState createState() => ProductListScreenState();
+  ItemListScreenState createState() => ItemListScreenState();
 }
 
-/// State for [ProductListScreen].
-class ProductListScreenState extends State<ProductListScreen> {
+/// State for [ItemListScreen].
+class ItemListScreenState extends State<ItemListScreen> {
   final PageController _pageController = PageController(initialPage: 1);
   int _currentPageIndex = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(
-        Provider.of<ProductProvider>(context, listen: false).fetchProducts(),
-      );
-    });
-  }
 
   @override
   void dispose() {
@@ -123,64 +135,53 @@ class ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _showSortingOptions(BuildContext context) {
+    final itemProvider = Provider.of<ItemProvider>(context, listen: false);
     unawaited(
       showModalBottomSheet<void>(
         context: context,
-        builder: (context) {
+        builder: (sheetContext) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.sort_by_alpha),
                 title: Text(
-                  AppLocalizations.of(context).translate('sort_by_name'),
+                  AppLocalizations.of(sheetContext).translate('sort_by_name'),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  unawaited(
-                    Provider.of<ProductProvider>(context, listen: false)
-                        .sortProducts(SortOption.alphabetical),
-                  );
+                  Navigator.pop(sheetContext);
+                  unawaited(itemProvider.sortItems(SortOption.alphabetical));
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.sort),
                 title: Text(
-                  AppLocalizations.of(context).translate('sort_by_quantity'),
+                  AppLocalizations.of(sheetContext)
+                      .translate('sort_by_quantity'),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  unawaited(
-                    Provider.of<ProductProvider>(context, listen: false)
-                        .sortProducts(SortOption.quantity),
-                  );
+                  Navigator.pop(sheetContext);
+                  unawaited(itemProvider.sortItems(SortOption.quantity));
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.attach_money),
                 title: Text(
-                  AppLocalizations.of(context).translate('sort_by_price'),
+                  AppLocalizations.of(sheetContext).translate('sort_by_price'),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  unawaited(
-                    Provider.of<ProductProvider>(context, listen: false)
-                        .sortProducts(SortOption.price),
-                  );
+                  Navigator.pop(sheetContext);
+                  unawaited(itemProvider.sortItems(SortOption.price));
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.drag_handle),
                 title: Text(
-                  AppLocalizations.of(context).translate('sort_manually'),
+                  AppLocalizations.of(sheetContext).translate('sort_manually'),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  unawaited(
-                    Provider.of<ProductProvider>(context, listen: false)
-                        .sortProducts(SortOption.manual),
-                  );
-                  setState(() {});
+                  Navigator.pop(sheetContext);
+                  unawaited(itemProvider.sortItems(SortOption.manual));
                 },
               ),
             ],
@@ -229,13 +230,13 @@ class ProductListScreenState extends State<ProductListScreen> {
               controller: _pageController,
               onPageChanged: _onPageChanged,
               children: [
-                _buildProductList(context, showNeedOnly: false),
-                _buildProductList(context, showNeedOnly: true),
+                _buildItemList(context, showNeedOnly: false),
+                _buildItemList(context, showNeedOnly: true),
               ],
             ),
           ),
           if (_currentPageIndex == 1)
-            Consumer<ProductProvider>(
+            Consumer<ItemProvider>(
               builder: (context, provider, child) {
                 final totalPrice = provider.getTotalPrice();
                 return Padding(
@@ -255,7 +256,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () {
-                    _showAddProductDialog(context);
+                    _showAddItemDialog(context);
                   },
                 ),
                 TextButton(
@@ -295,14 +296,14 @@ class ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildProductList(
+  Widget _buildItemList(
     BuildContext context, {
     required bool showNeedOnly,
   }) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    return Consumer<ProductProvider>(
+    return Consumer<ItemProvider>(
       builder: (context, provider, child) {
-        if (provider.products.isEmpty) {
+        if (provider.items.isEmpty) {
           return Column(
             children: [
               const Spacer(),
@@ -334,52 +335,60 @@ class ProductListScreenState extends State<ProductListScreen> {
           );
         }
 
-        final products = showNeedOnly
-            ? provider.products.where((product) => product.need).toList()
-            : provider.products;
+        final items = showNeedOnly
+            ? provider.items.where((item) => item.need).toList()
+            : provider.items;
 
         return ReorderableListView(
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              var adjustedNewIndex = newIndex;
-              if (adjustedNewIndex > oldIndex) {
-                adjustedNewIndex -= 1;
-              }
-              final product = products.removeAt(oldIndex);
-              products.insert(adjustedNewIndex, product);
-              unawaited(
-                provider.updateProductOrder(products, setManual: true),
-              );
-            });
+          onReorderItem: (oldIndex, newIndex) {
+            // `items` may be a filtered ("Need") view, so translate the visible
+            // indices back onto the full list before persisting the order.
+            final moved = items[oldIndex];
+            final withoutMoved = List<Item>.of(items)..removeAt(oldIndex);
+            final beforeId = newIndex < withoutMoved.length
+                ? withoutMoved[newIndex].id
+                : null;
+            final full = List<Item>.of(provider.items)
+              ..removeWhere((i) => i.id == moved.id);
+            final found = beforeId == null
+                ? -1
+                : full.indexWhere((i) => i.id == beforeId);
+            // Append when the anchor isn't found (e.g. dropped at the end).
+            final insertAt = found == -1 ? full.length : found;
+            full.insert(insertAt, moved);
+            unawaited(provider.updateItemOrder(full, setManual: true));
           },
-          children: products.map((product) {
-            final quantityDisplay = product.quantity % 1 == 0
-                ? product.quantity.toInt().toString()
-                : product.quantity.toString();
-            final priceStr = product.price != null
+          children: items.map((item) {
+            final quantityDisplay = item.quantity % 1 == 0
+                ? item.quantity.toInt().toString()
+                : item.quantity.toString();
+            final priceStr = item.price != null
                 ? ' - ${settingsProvider.currencySymbol}'
-                    '${product.price!.toStringAsFixed(2)}'
+                    '${item.price!.toStringAsFixed(2)}'
                 : '';
             return ListTile(
-              key: ValueKey(product.id),
+              key: ValueKey(item.id),
+              // On the "All" tab the checkbox reflects/toggles `need`. On the
+              // "Need" tab it acts as a check-off control: it renders unchecked
+              // and tapping it clears `need`, removing the item from the view.
               leading: Checkbox(
-                value: !showNeedOnly && product.need,
+                value: !showNeedOnly && item.need,
                 onChanged: (value) {
-                  product.need =
+                  item.need =
                       showNeedOnly ? !(value ?? false) : (value ?? false);
-                  unawaited(provider.updateProduct(product));
+                  unawaited(provider.updateItem(item));
                 },
               ),
-              title: Text(product.name),
+              title: Text(item.name),
               subtitle: Text('Q: $quantityDisplay$priceStr'),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () {
-                  _showDeleteConfirmationDialog(context, product.id!);
+                  _showDeleteConfirmationDialog(context, item.id!);
                 },
               ),
               onTap: () {
-                _showAddProductDialog(context, product: product);
+                _showAddItemDialog(context, item: item);
               },
             );
           }).toList(),
@@ -388,27 +397,28 @@ class ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  void _showAddProductDialog(BuildContext context, {Product? product}) {
-    final productProvider =
-        Provider.of<ProductProvider>(context, listen: false);
+  void _showAddItemDialog(BuildContext context, {Item? item}) {
+    final itemProvider = Provider.of<ItemProvider>(context, listen: false);
+
+    var name = item?.name ?? '';
+    var quantity = item?.quantity ?? 1.0;
+    var price = item?.price;
+    var need = item?.need ?? true;
+
+    // Created once and disposed when the dialog closes, so rebuilds (e.g.
+    // toggling "need") don't recreate controllers or reset the cursor.
+    final nameController = TextEditingController(text: name);
+    final quantityController = TextEditingController(text: quantity.toString());
+    final priceController =
+        TextEditingController(text: price?.toString() ?? '');
 
     unawaited(
       showDialog<void>(
         context: context,
         builder: (context) {
-          var name = product?.name ?? '';
-          var quantity = product?.quantity ?? 1.0;
-          var price = product?.price;
-          var need = product?.need ?? true;
-
-          final quantityController =
-              TextEditingController(text: quantity.toString());
-          final priceController =
-              TextEditingController(text: price?.toString() ?? '');
-
           return AlertDialog(
             title: Text(
-              product == null
+              item == null
                   ? AppLocalizations.of(context).translate('add_product')
                   : AppLocalizations.of(context).translate('edit_product'),
             ),
@@ -422,7 +432,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                         labelText:
                             AppLocalizations.of(context).translate('name'),
                       ),
-                      controller: TextEditingController(text: name),
+                      controller: nameController,
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(64),
                       ],
@@ -430,10 +440,10 @@ class ProductListScreenState extends State<ProductListScreen> {
                         name = value;
                       },
                       onSubmitted: (_) {
-                        _submitProduct(
+                        _submitItem(
                           context,
-                          productProvider,
-                          product,
+                          itemProvider,
+                          item,
                           name,
                           quantity,
                           price,
@@ -465,10 +475,10 @@ class ProductListScreenState extends State<ProductListScreen> {
                         }
                       },
                       onSubmitted: (_) {
-                        _submitProduct(
+                        _submitItem(
                           context,
-                          productProvider,
-                          product,
+                          itemProvider,
+                          item,
                           name,
                           quantity,
                           price,
@@ -501,10 +511,10 @@ class ProductListScreenState extends State<ProductListScreen> {
                         }
                       },
                       onSubmitted: (_) {
-                        _submitProduct(
+                        _submitItem(
                           context,
-                          productProvider,
-                          product,
+                          itemProvider,
+                          item,
                           name,
                           quantity,
                           price,
@@ -538,10 +548,10 @@ class ProductListScreenState extends State<ProductListScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  _submitProduct(
+                  _submitItem(
                     context,
-                    productProvider,
-                    product,
+                    itemProvider,
+                    item,
                     name,
                     quantity,
                     price,
@@ -549,7 +559,7 @@ class ProductListScreenState extends State<ProductListScreen> {
                   );
                 },
                 child: Text(
-                  product == null
+                  item == null
                       ? AppLocalizations.of(context).translate('add_product')
                       : AppLocalizations.of(context).translate('update'),
                 ),
@@ -557,44 +567,62 @@ class ProductListScreenState extends State<ProductListScreen> {
             ],
           );
         },
-      ),
+      ).whenComplete(() {
+        nameController.dispose();
+        quantityController.dispose();
+        priceController.dispose();
+      }),
     );
   }
 
-  void _submitProduct(
+  void _submitItem(
     BuildContext context,
-    ProductProvider provider,
-    Product? product,
+    ItemProvider provider,
+    Item? item,
     String name,
     double quantity,
     double? price,
     bool need,
   ) {
-    if (name.isNotEmpty) {
-      if (product == null) {
-        final newProduct = Product(
-          name: name,
-          quantity: quantity,
-          need: need,
-          price: price != null ? double.parse(price.toStringAsFixed(2)) : null,
-        );
-        unawaited(provider.addProduct(newProduct));
-      } else {
-        final updatedProduct = Product(
-          name: name,
-          quantity: quantity,
-          need: need,
-          id: product.id,
-          price: price != null ? double.parse(price.toStringAsFixed(2)) : null,
-        );
-        unawaited(provider.updateProduct(updatedProduct));
-      }
-      Navigator.of(context).pop();
-      setState(() {});
+    if (name.isEmpty) {
+      return;
     }
+    final listId = item?.listId ?? provider.activeListId;
+    if (listId == null) {
+      return;
+    }
+    // Enforce the same caps as the input formatters at the write path, so the
+    // limits hold even if a value bypasses the widget (paste, programmatic).
+    final safeName = name.length > 64 ? name.substring(0, 64) : name;
+    final safeQuantity = quantity.clamp(0, 9999).toDouble();
+    final clampedPrice = price?.clamp(0, 1000000000).toDouble();
+    final roundedPrice = clampedPrice != null
+        ? double.parse(clampedPrice.toStringAsFixed(2))
+        : null;
+    if (item == null) {
+      unawaited(
+        provider.addItem(
+          Item(
+            listId: listId,
+            name: safeName,
+            quantity: safeQuantity,
+            need: need,
+            price: roundedPrice,
+          ),
+        ),
+      );
+    } else {
+      item
+        ..name = safeName
+        ..quantity = safeQuantity
+        ..need = need
+        ..price = roundedPrice;
+      unawaited(provider.updateItem(item));
+    }
+    Navigator.of(context).pop();
   }
 
-  void _showDeleteConfirmationDialog(BuildContext context, int productId) {
+  void _showDeleteConfirmationDialog(BuildContext context, int itemId) {
     unawaited(
       showDialog<void>(
         context: context,
@@ -618,11 +646,10 @@ class ProductListScreenState extends State<ProductListScreen> {
               TextButton(
                 onPressed: () {
                   unawaited(
-                    Provider.of<ProductProvider>(context, listen: false)
-                        .deleteProduct(productId),
+                    Provider.of<ItemProvider>(context, listen: false)
+                        .deleteItem(itemId),
                   );
                   Navigator.of(context).pop();
-                  setState(() {});
                 },
                 child: Text(
                   AppLocalizations.of(context).translate('delete_product'),
