@@ -99,6 +99,24 @@ class ListProvider with ChangeNotifier {
     await load();
   }
 
+  /// Updates the editable settings of the list with [id].
+  ///
+  /// Turning [perStorePrices] off only hides the per-store UI; existing
+  /// `item_store_prices` rows are preserved (non-destructive) so re-enabling
+  /// the option restores them.
+  Future<void> updateListSettings(
+    int id, {
+    required String name,
+    required bool perStorePrices,
+  }) async {
+    final list = _lists.firstWhere((l) => l.id == id)
+      ..name = name
+      ..perStorePrices = perStorePrices
+      ..updatedAt = DateTime.now().millisecondsSinceEpoch;
+    await _db.updateList(list);
+    await load();
+  }
+
   /// Sets the emoji [icon] of the list with [id] (`null` clears it).
   Future<void> setIcon(int id, String? icon) async {
     final list = _lists.firstWhere((l) => l.id == id)

@@ -71,4 +71,19 @@ void main() {
     expect(provider.activeListId, isNull);
     expect(provider.activeList, isNull);
   });
+
+  test('updateListSettings renames and toggles per-store prices', () async {
+    final id = provider.activeListId!;
+    expect(provider.activeList!.perStorePrices, isFalse);
+
+    await provider.updateListSettings(
+      id,
+      name: 'Groceries',
+      perStorePrices: true,
+    );
+
+    final list = provider.lists.firstWhere((l) => l.id == id);
+    expect(list.name, 'Groceries');
+    expect(list.perStorePrices, isTrue);
+  });
 }

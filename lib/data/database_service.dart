@@ -591,6 +591,66 @@ class DatabaseService {
     return db.insert('stores', store.toMap()..remove('id'));
   }
 
+  /// Updates [store]'s persisted columns.
+  Future<void> updateStore(Store store) async {
+    final db = await database;
+    await db.update(
+      'stores',
+      store.toMap(),
+      where: 'id = ?',
+      whereArgs: [store.id],
+    );
+  }
+
+  /// Deletes the store with [id]. Its per-item prices are removed via the
+  /// `ON DELETE CASCADE` foreign key.
+  Future<void> deleteStore(int id) async {
+    final db = await database;
+    await db.delete('stores', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Returns the per-store prices recorded for [itemId].
+  Future<List<ItemStorePrice>> getItemStorePrices(int itemId) async {
+    final db = await database;
+    final rows = await db.query(
+      'item_store_prices',
+      where: 'item_id = ?',
+      whereArgs: [itemId],
+    );
+    return rows.map(ItemStorePrice.fromMap).toList();
+  }
+
+  /// Upserts the price/aisle for ([itemId], [storeId]). When both [price] and
+  /// [aisle] are empty the row is deleted, keeping the table sparse.
+  Future<void> setItemStorePrice(
+    int itemId,
+    int storeId, {
+    double? price,
+    String? aisle,
+  }) async {
+    final db = await database;
+    final trimmedAisle =
+        (aisle == null || aisle.trim().isEmpty) ? null : aisle.trim();
+    if (price == null && trimmedAisle == null) {
+      await db.delete(
+        'item_store_prices',
+        where: 'item_id = ? AND store_id = ?',
+        whereArgs: [itemId, storeId],
+      );
+      return;
+    }
+    await db.insert(
+      'item_store_prices',
+      {
+        'item_id': itemId,
+        'store_id': storeId,
+        'price': price,
+        'aisle': trimmedAisle,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
   // --- Backup / export / import -------------------------------------------
 
   /// Serializes lists (all, or just [listIds]) into a JSON-able envelope.

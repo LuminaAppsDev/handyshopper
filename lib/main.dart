@@ -6,6 +6,7 @@ import 'package:handyshopper/providers/category_provider.dart';
 import 'package:handyshopper/providers/item_provider.dart';
 import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
+import 'package:handyshopper/providers/store_provider.dart';
 import 'package:handyshopper/screens/lists_screen.dart';
 import 'package:handyshopper/services/share_service.dart';
 import 'package:provider/provider.dart';
@@ -58,6 +59,11 @@ class MyApp extends StatelessWidget {
           create: (ctx) => CategoryProvider(ctx.read<DatabaseService>()),
           update: (ctx, listProvider, categoryProvider) =>
               categoryProvider!..setActiveList(listProvider.activeListId),
+        ),
+        ChangeNotifierProxyProvider<ListProvider, StoreProvider>(
+          create: (ctx) => StoreProvider(ctx.read<DatabaseService>()),
+          update: (ctx, listProvider, storeProvider) =>
+              storeProvider!..setActiveList(listProvider.activeListId),
         ),
         ChangeNotifierProvider.value(value: settingsProvider),
       ],

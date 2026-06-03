@@ -56,5 +56,16 @@
   "note": "Notiz",
   "save": "Speichern",
   "none": "Keins",
-  "item_details": "Artikeldetails"
+  "item_details": "Artikeldetails",
+  "stores": "Geschäfte",
+  "store": "Geschäft",
+  "edit_stores": "Geschäfte bearbeiten",
+  "new_store": "Neues Geschäft",
+  "store_name": "Geschäftsname",
+  "no_stores": "Noch keine Geschäfte. Tippe auf +, um eines zu erstellen.",
+  "delete_store": "Geschäft löschen",
+  "delete_store_confirm": "Dieses Geschäft löschen? Seine Artikelpreise werden entfernt.",
+  "all_stores": "Alle Geschäfte",
+  "aisle": "Gang",
+  "edit_list": "Liste bearbeiten"
 }

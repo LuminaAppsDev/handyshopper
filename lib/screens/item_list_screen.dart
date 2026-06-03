@@ -8,11 +8,16 @@ import 'package:handyshopper/providers/category_provider.dart';
 import 'package:handyshopper/providers/item_provider.dart';
 import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
+import 'package:handyshopper/providers/store_provider.dart';
 import 'package:handyshopper/screens/item_detail_screen.dart';
+import 'package:handyshopper/screens/store_screen.dart';
 import 'package:provider/provider.dart';
 
 /// Filter sentinel meaning "items with no category".
 const int _uncategorizedFilter = -1;
+
+/// Store-selector sentinel meaning "open the Edit Stores screen".
+const int _editStoresAction = -2;
 
 /// Displays the items of the active list with "All" and "Need" tabs and an
 /// optional category filter.
@@ -32,6 +37,9 @@ class ItemListScreenState extends State<ItemListScreen> {
   /// Active category filter: `null` = all, [_uncategorizedFilter] = no
   /// category, otherwise a category id.
   int? _categoryFilter;
+
+  /// Selected store for per-store pricing: `null` = all stores (base price).
+  int? _selectedStoreId;
 
   @override
   void dispose() {
@@ -125,6 +133,7 @@ class ItemListScreenState extends State<ItemListScreen> {
     // Price is a shopping-list concept; other styles hide it.
     final showsPrice =
         (activeList?.style ?? ListStyle.shopping) == ListStyle.shopping;
+    final perStorePrices = activeList?.perStorePrices ?? false;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -138,7 +147,10 @@ class ItemListScreenState extends State<ItemListScreen> {
             fontSize: 24,
           ),
         ),
-        actions: [_buildCategoryFilter()],
+        actions: [
+          if (perStorePrices) _buildStoreSelector(),
+          _buildCategoryFilter(),
+        ],
       ),
       body: Column(
         children: [
@@ -165,7 +177,8 @@ class ItemListScreenState extends State<ItemListScreen> {
           if (_currentPageIndex == 1 && showsPrice)
             Consumer<ItemProvider>(
               builder: (context, provider, child) {
-                final totalPrice = provider.getTotalPrice();
+                final totalPrice =
+                    provider.getTotalPrice(storeId: _selectedStoreId);
                 return Padding(
                   padding: const EdgeInsets.all(8),
                   child: Text(
@@ -248,6 +261,50 @@ class ItemListScreenState extends State<ItemListScreen> {
                 value: c.id,
                 child: Text(c.icon == null ? c.name : '${c.icon}  ${c.name}'),
               ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStoreSelector() {
+    return Consumer<StoreProvider>(
+      builder: (context, provider, child) {
+        // Reset to "all stores" if the selected store was deleted.
+        if (_selectedStoreId != null &&
+            !provider.stores.any((s) => s.id == _selectedStoreId)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _selectedStoreId = null);
+            }
+          });
+        }
+        return PopupMenuButton<int?>(
+          icon: const Icon(Icons.store),
+          onSelected: (value) {
+            if (value == _editStoresAction) {
+              unawaited(
+                Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const StoreScreen(),
+                  ),
+                ),
+              );
+              return;
+            }
+            setState(() => _selectedStoreId = value);
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem<int?>(child: Text(_t('all_stores'))),
+            ...provider.stores.map(
+              (s) => PopupMenuItem<int?>(value: s.id, child: Text(s.name)),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem<int?>(
+              value: _editStoresAction,
+              child: Text(_t('edit_stores')),
             ),
           ],
         );
@@ -338,9 +395,11 @@ class ItemListScreenState extends State<ItemListScreen> {
             final quantityDisplay = item.quantity % 1 == 0
                 ? item.quantity.toInt().toString()
                 : item.quantity.toString();
-            final priceStr = showsPrice && item.price != null
+            final displayPrice =
+                showsPrice ? provider.priceFor(item, _selectedStoreId) : null;
+            final priceStr = displayPrice != null
                 ? ' - ${settingsProvider.currencySymbol}'
-                    '${item.price!.toStringAsFixed(2)}'
+                    '${displayPrice.toStringAsFixed(2)}'
                 : '';
             final emoji = categoryIcons[item.categoryId];
             final title = emoji == null ? item.name : '$emoji  ${item.name}';

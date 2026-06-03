@@ -163,4 +163,39 @@ void main() {
     cats = await service.getCategories(listId);
     expect(cats, isEmpty);
   });
+
+  test('updateStore and deleteStore (cascades its prices)', () async {
+    final storeId = await service.insertStore(Store(listId: listId, name: 'A'));
+    await service.updateStore(Store(id: storeId, listId: listId, name: 'Aldi'));
+    expect((await service.getStores(listId)).single.name, 'Aldi');
+
+    final itemId = await service.insertItem(Item(listId: listId, name: 'Milk'));
+    await service.setItemStorePrice(itemId, storeId, price: 0.9);
+    expect((await service.getItemStorePrices(itemId)).single.price, 0.9);
+
+    await service.deleteStore(storeId);
+    expect(await service.getStores(listId), isEmpty);
+    expect(await service.getItemStorePrices(itemId), isEmpty); // cascaded
+  });
+
+  test('setItemStorePrice upserts then clears', () async {
+    final storeId = await service.insertStore(Store(listId: listId, name: 'A'));
+    final itemId = await service.insertItem(Item(listId: listId, name: 'Milk'));
+
+    await service.setItemStorePrice(itemId, storeId, price: 1, aisle: '3');
+    var rows = await service.getItemStorePrices(itemId);
+    expect(rows.single.price, 1.0);
+    expect(rows.single.aisle, '3');
+
+    // Upsert (no duplicate row thanks to the UNIQUE constraint).
+    await service.setItemStorePrice(itemId, storeId, price: 2);
+    rows = await service.getItemStorePrices(itemId);
+    expect(rows.length, 1);
+    expect(rows.single.price, 2.0);
+    expect(rows.single.aisle, isNull);
+
+    // Empty price + aisle removes the row.
+    await service.setItemStorePrice(itemId, storeId);
+    expect(await service.getItemStorePrices(itemId), isEmpty);
+  });
 }

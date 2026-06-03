@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/item_store_price.dart';
 import 'package:handyshopper/models/shopping_list.dart';
 
 /// The available sort options for the item list.
@@ -35,6 +36,9 @@ class ItemProvider with ChangeNotifier {
   int? _listId;
   String _sortPrimary = SortOption.manual.name;
 
+  /// Per-store prices for the active list, keyed by itemId then storeId.
+  Map<int, Map<int, ItemStorePrice>> _storePrices = {};
+
   /// The current items of the active list.
   List<Item> get items => _items;
 
@@ -58,23 +62,30 @@ class ItemProvider with ChangeNotifier {
     unawaited(fetchItems());
   }
 
-  /// Loads the active list's items and applies its persisted sort.
+  /// Loads the active list's items, per-store prices, and applies the sort.
   Future<void> fetchItems() async {
     final listId = _listId;
     if (listId == null) {
       _items = [];
+      _storePrices = {};
       notifyListeners();
       return;
     }
     _items = await _db.getItems(listId);
+    final prices = await _db.getItemStorePricesForList(listId);
+    _storePrices = {};
+    for (final price in prices) {
+      (_storePrices[price.itemId] ??= {})[price.storeId] = price;
+    }
     _applySort(_sortOptionOf(_sortPrimary));
     notifyListeners();
   }
 
-  /// Adds [item] to the active list.
-  Future<void> addItem(Item item) async {
-    await _db.insertItem(item);
+  /// Adds [item] to the active list and returns its new id.
+  Future<int> addItem(Item item) async {
+    final id = await _db.insertItem(item);
     await fetchItems();
+    return id;
   }
 
   /// Updates [item].
@@ -121,11 +132,28 @@ class ItemProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns the total price of all needed items (price × quantity).
-  double getTotalPrice() {
+  /// The effective price of [item] at [storeId]: the store-specific price when
+  /// one is recorded, otherwise the item's base price. `null` [storeId] always
+  /// yields the base price.
+  double? priceFor(Item item, int? storeId) {
+    if (storeId == null || item.id == null) {
+      return item.price;
+    }
+    return _storePrices[item.id]?[storeId]?.price ?? item.price;
+  }
+
+  /// The per-store prices recorded for [item] (storeId → row).
+  Map<int, ItemStorePrice> storePricesFor(Item item) {
+    return _storePrices[item.id] ?? const {};
+  }
+
+  /// Returns the total of all needed items (effective price × quantity),
+  /// evaluated at [storeId] (base price when null).
+  double getTotalPrice({int? storeId}) {
     return _items.where((item) => item.need).fold<double>(
           0,
-          (total, item) => total + (item.price ?? 0) * item.quantity,
+          (total, item) =>
+              total + (priceFor(item, storeId) ?? 0) * item.quantity,
         );
   }
 
@@ -136,6 +164,8 @@ class ItemProvider with ChangeNotifier {
       case SortOption.quantity:
         _items.sort((a, b) => a.quantity.compareTo(b.quantity));
       case SortOption.price:
+        // Sorts by the base price; a selected store's per-store price is
+        // intentionally not considered here.
         _items.sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
       case SortOption.manual:
         // Items already arrive ordered by sort_order from the database.

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/store.dart';
 import 'package:handyshopper/providers/item_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -74,5 +75,23 @@ void main() {
     await provider.deleteItem(id);
 
     expect(provider.items, isEmpty);
+  });
+
+  test('priceFor and getTotalPrice respect per-store prices', () async {
+    final listId = provider.activeListId!;
+    final storeId = await service.insertStore(Store(listId: listId, name: 'A'));
+    await provider.addItem(Item(listId: listId, name: 'Milk', price: 2));
+    final itemId = provider.items.single.id!;
+    await service.setItemStorePrice(itemId, storeId, price: 1.5);
+    await provider.fetchItems();
+
+    final item = provider.items.single;
+    expect(provider.priceFor(item, null), 2.0); // base price
+    expect(provider.priceFor(item, storeId), 1.5); // store override
+    // A store with no recorded price falls back to the base price.
+    expect(provider.priceFor(item, storeId + 999), 2.0);
+
+    expect(provider.getTotalPrice(), 2.0);
+    expect(provider.getTotalPrice(storeId: storeId), 1.5);
   });
 }

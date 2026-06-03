@@ -56,5 +56,16 @@
   "note": "Note",
   "save": "Save",
   "none": "None",
-  "item_details": "Item Details"
+  "item_details": "Item Details",
+  "stores": "Stores",
+  "store": "Store",
+  "edit_stores": "Edit Stores",
+  "new_store": "New Store",
+  "store_name": "Store name",
+  "no_stores": "No stores yet. Tap + to create one.",
+  "delete_store": "Delete store",
+  "delete_store_confirm": "Delete this store? Its per-item prices are removed.",
+  "all_stores": "All Stores",
+  "aisle": "Aisle",
+  "edit_list": "Edit list"
 }

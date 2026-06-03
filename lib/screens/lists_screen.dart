@@ -128,8 +128,8 @@ class _ListsScreenState extends State<ListsScreen> {
     return PopupMenuButton<String>(
       onSelected: (value) {
         switch (value) {
-          case 'rename':
-            unawaited(_showRenameDialog(list));
+          case 'edit':
+            unawaited(_showEditListDialog(list));
           case 'icon':
             unawaited(_pickListIcon(list));
           case 'copy':
@@ -143,7 +143,7 @@ class _ListsScreenState extends State<ListsScreen> {
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'rename', child: Text(_t('rename'))),
+        PopupMenuItem(value: 'edit', child: Text(_t('edit_list'))),
         PopupMenuItem(value: 'icon', child: Text(_t('choose_icon'))),
         PopupMenuItem(value: 'copy', child: Text(_t('copy'))),
         PopupMenuItem(value: 'delete', child: Text(_t('delete_list'))),
@@ -253,39 +253,62 @@ class _ListsScreenState extends State<ListsScreen> {
     }
   }
 
-  Future<void> _showRenameDialog(ShoppingList list) async {
+  Future<void> _showEditListDialog(ShoppingList list) async {
+    final provider = context.read<ListProvider>();
     final controller = TextEditingController(text: list.name);
+    var perStorePrices = list.perStorePrices;
     try {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) {
-          return AlertDialog(
-            title: Text(_t('rename')),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(labelText: _t('list_name')),
-              inputFormatters: [LengthLimitingTextInputFormatter(64)],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(_t('cancel')),
-              ),
-              TextButton(
-                onPressed: () {
-                  final name = controller.text.trim();
-                  if (name.isEmpty) {
-                    return;
-                  }
-                  unawaited(
-                    context.read<ListProvider>().renameList(list.id!, name),
-                  );
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(_t('update')),
-              ),
-            ],
+          return StatefulBuilder(
+            builder: (dialogContext, setLocalState) {
+              return AlertDialog(
+                title: Text(_t('edit_list')),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      decoration: InputDecoration(labelText: _t('list_name')),
+                      inputFormatters: [LengthLimitingTextInputFormatter(64)],
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(_t('per_store_prices')),
+                      value: perStorePrices,
+                      onChanged: (value) => setLocalState(
+                        () => perStorePrices = value ?? false,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text(_t('cancel')),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final name = controller.text.trim();
+                      if (name.isEmpty) {
+                        return;
+                      }
+                      unawaited(
+                        provider.updateListSettings(
+                          list.id!,
+                          name: name,
+                          perStorePrices: perStorePrices,
+                        ),
+                      );
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(_t('update')),
+                  ),
+                ],
+              );
+            },
           );
         },
       );
