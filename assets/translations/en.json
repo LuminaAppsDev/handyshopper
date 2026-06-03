@@ -89,5 +89,8 @@
   "sort_by_priority": "Sort by priority",
   "sort_by_aisle": "Sort by aisle",
   "sort_by_date": "Sort by date",
-  "custom": "Custom…"
+  "custom": "Custom…",
+  "import_question": "How should the import be applied?",
+  "import_replace": "Replace all",
+  "import_add": "Add"
 }

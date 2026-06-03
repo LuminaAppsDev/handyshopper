@@ -753,15 +753,23 @@ class DatabaseService {
   };
   static const Set<String> _priceColumns = {'price', 'aisle'};
 
-  /// Imports lists from an [exportData] envelope. Always **additive**: every
-  /// list is created anew with fresh ids (relationships remapped), so existing
-  /// data is preserved and ids never collide. Returns the number of lists
-  /// imported. Accepts both whole-app and single-list envelopes.
+  /// Imports lists from an [exportData] envelope. Every imported list is
+  /// created anew with fresh ids (relationships remapped), so ids never
+  /// collide. Returns the number of lists imported. Accepts both whole-app and
+  /// single-list envelopes. See [replace] for additive vs replace behavior.
   ///
   /// Input is treated as untrusted: only known columns are kept and values are
   /// coerced to SQLite-safe primitives, so a malformed or hostile file cannot
   /// inject columns or crash the insert.
-  Future<int> importData(Map<String, dynamic> json) async {
+  ///
+  /// When [replace] is true, all existing lists are deleted first (within the
+  /// same transaction), so the imported data fully replaces the current data —
+  /// e.g. restoring a whole-app backup without duplicating lists. When false,
+  /// the import is purely additive.
+  Future<int> importData(
+    Map<String, dynamic> json, {
+    bool replace = false,
+  }) async {
     final lists =
         (json['lists'] as List?)?.whereType<Map<String, dynamic>>().toList() ??
             const [];
@@ -775,6 +783,10 @@ class DatabaseService {
     }
     final db = await database;
     await db.transaction((txn) async {
+      if (replace) {
+        // Cascade removes each list's categories, stores, items and prices.
+        await txn.delete('lists');
+      }
       for (final list in lists) {
         final newListId =
             await txn.insert('lists', _sanitize(list, _listColumns));

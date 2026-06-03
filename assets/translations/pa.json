@@ -89,5 +89,8 @@
   "sort_by_priority": "ਤਰਜੀਹ ਅਨੁਸਾਰ ਕ੍ਰਮਬੱਧ ਕਰੋ",
   "sort_by_aisle": "ਗਲਿਆਰੇ ਅਨੁਸਾਰ ਕ੍ਰਮਬੱਧ ਕਰੋ",
   "sort_by_date": "ਮਿਤੀ ਅਨੁਸਾਰ ਕ੍ਰਮਬੱਧ ਕਰੋ",
-  "custom": "ਕਸਟਮ…"
+  "custom": "ਕਸਟਮ…",
+  "import_question": "ਆਯਾਤ ਕਿਵੇਂ ਲਾਗੂ ਕਰੀਏ?",
+  "import_replace": "ਸਭ ਬਦਲੋ",
+  "import_add": "ਸ਼ਾਮਲ ਕਰੋ"
 }

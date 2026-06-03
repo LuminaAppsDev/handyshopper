@@ -254,11 +254,15 @@ class _ListsScreenState extends State<ListsScreen> {
     final failedLabel = _t('import_failed');
 
     final data = await share.pickJsonData();
-    if (data == null) {
+    if (data == null || !mounted) {
       return;
     }
+    final replace = await _askImportMode();
+    if (replace == null) {
+      return; // cancelled
+    }
     try {
-      final count = await db.importData(data);
+      final count = await db.importData(data, replace: replace);
       await listProvider.load();
       messenger.showSnackBar(
         SnackBar(content: Text('$importedLabel: $count')),
@@ -266,6 +270,32 @@ class _ListsScreenState extends State<ListsScreen> {
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(failedLabel)));
     }
+  }
+
+  /// Asks how to apply an import: `true` = replace all, `false` = add,
+  /// `null` = cancel.
+  Future<bool?> _askImportMode() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_t('restore')),
+        content: Text(_t('import_question')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(_t('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(_t('import_add')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(_t('import_replace')),
+          ),
+        ],
+      ),
+    );
   }
 
   String _safeFileName(String name) {

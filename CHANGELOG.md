@@ -12,6 +12,15 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
+## 2.0.3 - 2026-06-03
+
+### Changed
+
+- Importing/restoring a backup now asks whether to **Replace all** current
+  lists (e.g. restoring a whole-app backup without duplicates) or **Add** the
+  imported lists (e.g. a list shared with you). Previously import was always
+  additive, so restoring a backup onto the same device duplicated every list.
+
 ## 2.0.2 - 2026-06-03
 
 ### Fixed

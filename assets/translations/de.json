@@ -89,5 +89,8 @@
   "sort_by_priority": "Nach Priorität sortieren",
   "sort_by_aisle": "Nach Gang sortieren",
   "sort_by_date": "Nach Datum sortieren",
-  "custom": "Benutzerdefiniert…"
+  "custom": "Benutzerdefiniert…",
+  "import_question": "Wie soll der Import angewendet werden?",
+  "import_replace": "Alles ersetzen",
+  "import_add": "Hinzufügen"
 }

@@ -89,5 +89,8 @@
   "sort_by_priority": "ترجیح کے مطابق ترتیب دیں",
   "sort_by_aisle": "گلیارے کے مطابق ترتیب دیں",
   "sort_by_date": "تاریخ کے مطابق ترتیب دیں",
-  "custom": "حسب ضرورت…"
+  "custom": "حسب ضرورت…",
+  "import_question": "درآمد کیسے لاگو کریں؟",
+  "import_replace": "سب تبدیل کریں",
+  "import_add": "شامل کریں"
 }

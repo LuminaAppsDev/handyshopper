@@ -89,5 +89,8 @@
   "sort_by_priority": "Sắp xếp theo ưu tiên",
   "sort_by_aisle": "Sắp xếp theo lối đi",
   "sort_by_date": "Sắp xếp theo ngày",
-  "custom": "Tùy chỉnh…"
+  "custom": "Tùy chỉnh…",
+  "import_question": "Áp dụng nhập như thế nào?",
+  "import_replace": "Thay thế tất cả",
+  "import_add": "Thêm"
 }

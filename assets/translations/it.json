@@ -89,5 +89,8 @@
   "sort_by_priority": "Ordina per priorità",
   "sort_by_aisle": "Ordina per corsia",
   "sort_by_date": "Ordina per data",
-  "custom": "Personalizzato…"
+  "custom": "Personalizzato…",
+  "import_question": "Come applicare l’importazione?",
+  "import_replace": "Sostituisci tutto",
+  "import_add": "Aggiungi"
 }

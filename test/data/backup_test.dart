@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/models/category.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/shopping_list.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -73,6 +74,27 @@ void main() {
     expect(imported.tax2Enabled, isTrue);
     expect(imported.tax2Rate, 7);
     expect(imported.taxInclusive, isTrue); // guards the allowlist
+    await target.close();
+  });
+
+  test('import with replace:true wipes existing lists first (no duplicates)',
+      () async {
+    final source = newService();
+    final listId = (await source.getActiveListId())!;
+    await source.insertItem(Item(listId: listId, name: 'Milk'));
+    final data = jsonDecode(jsonEncode(await source.exportData()))
+        as Map<String, dynamic>;
+    await source.close();
+
+    final target = newService();
+    await target.insertList(ShoppingList(name: 'Extra')); // seeded + extra = 2
+    expect((await target.getLists()).length, 2);
+
+    final count = await target.importData(data, replace: true);
+    expect(count, 1);
+    final lists = await target.getLists();
+    expect(lists.length, 1); // both pre-existing lists wiped
+    expect(lists.single.name, 'Shopping');
     await target.close();
   });
 

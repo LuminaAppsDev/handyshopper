@@ -89,5 +89,8 @@
   "sort_by_priority": "按优先级排序",
   "sort_by_aisle": "按通道排序",
   "sort_by_date": "按日期排序",
-  "custom": "自定义…"
+  "custom": "自定义…",
+  "import_question": "如何应用导入？",
+  "import_replace": "全部替换",
+  "import_add": "添加"
 }
