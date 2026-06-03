@@ -36,6 +36,7 @@ class ShoppingList {
     this.taxRate = 0,
     this.tax2Rate = 0,
     this.tax2Enabled = false,
+    this.taxInclusive = false,
     this.defaultPriority = 3,
     this.sortPrimary = 'manual',
     this.sortSecondary,
@@ -58,6 +59,7 @@ class ShoppingList {
         taxRate: (map['tax_rate'] as num?)?.toDouble() ?? 0,
         tax2Rate: (map['tax2_rate'] as num?)?.toDouble() ?? 0,
         tax2Enabled: (map['tax2_enabled'] as int? ?? 0) == 1,
+        taxInclusive: (map['tax_inclusive'] as int? ?? 0) == 1,
         defaultPriority: map['default_priority'] as int? ?? 3,
         sortPrimary: map['sort_primary'] as String? ?? 'manual',
         sortSecondary: map['sort_secondary'] as String?,
@@ -95,6 +97,10 @@ class ShoppingList {
 
   /// Whether the secondary tax is enabled.
   bool tax2Enabled;
+
+  /// Whether prices already include tax (VAT broken out) rather than tax being
+  /// added on top.
+  bool taxInclusive;
 
   /// The default priority assigned to new items.
   int defaultPriority;
@@ -134,6 +140,7 @@ class ShoppingList {
         'tax_rate': taxRate,
         'tax2_rate': tax2Rate,
         'tax2_enabled': tax2Enabled ? 1 : 0,
+        'tax_inclusive': taxInclusive ? 1 : 0,
         'default_priority': defaultPriority,
         'sort_primary': sortPrimary,
         'sort_secondary': sortSecondary,

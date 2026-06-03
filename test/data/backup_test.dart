@@ -50,6 +50,32 @@ void main() {
     await target.close();
   });
 
+  test('export/import preserves list tax settings', () async {
+    final source = newService();
+    final lists = await source.getLists();
+    final list = lists.single
+      ..taxRate = 19
+      ..tax2Enabled = true
+      ..tax2Rate = 7
+      ..taxInclusive = true;
+    await source.updateList(list);
+    final data = jsonDecode(jsonEncode(await source.exportData()))
+        as Map<String, dynamic>;
+    await source.close();
+
+    final target = newService();
+    for (final l in await target.getLists()) {
+      await target.deleteList(l.id!);
+    }
+    await target.importData(data);
+    final imported = (await target.getLists()).single;
+    expect(imported.taxRate, 19);
+    expect(imported.tax2Enabled, isTrue);
+    expect(imported.tax2Rate, 7);
+    expect(imported.taxInclusive, isTrue); // guards the allowlist
+    await target.close();
+  });
+
   test('import is additive and assigns fresh ids', () async {
     final source = newService();
     final listId = (await source.getActiveListId())!;

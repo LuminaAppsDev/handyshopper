@@ -67,5 +67,18 @@
   "delete_store_confirm": "Dieses Geschäft löschen? Seine Artikelpreise werden entfernt.",
   "all_stores": "Alle Geschäfte",
   "aisle": "Gang",
-  "edit_list": "Liste bearbeiten"
+  "edit_list": "Liste bearbeiten",
+  "list_settings": "Listeneinstellungen",
+  "tax_rate": "Steuersatz (%)",
+  "second_tax": "Zweite Steuer",
+  "tax_mode": "Steuermodus",
+  "tax_add": "Steuer zu Preisen hinzufügen",
+  "tax_included": "Preise enthalten Steuer (MwSt.)",
+  "taxable": "Steuerpflichtig",
+  "coupon": "Gutschein",
+  "checkout": "Kasse",
+  "subtotal": "Zwischensumme",
+  "tax": "Steuer",
+  "includes_tax": "Enthält Steuer",
+  "mark_purchased": "Bezahlen"
 }

@@ -72,18 +72,24 @@ void main() {
     expect(provider.activeList, isNull);
   });
 
-  test('updateListSettings renames and toggles per-store prices', () async {
+  test('saveList persists tax settings and the inclusive flag', () async {
     final id = provider.activeListId!;
-    expect(provider.activeList!.perStorePrices, isFalse);
+    provider.activeList!
+      ..name = 'Groceries'
+      ..perStorePrices = true
+      ..taxRate = 19
+      ..tax2Enabled = true
+      ..tax2Rate = 7
+      ..taxInclusive = true;
 
-    await provider.updateListSettings(
-      id,
-      name: 'Groceries',
-      perStorePrices: true,
-    );
+    await provider.saveList(provider.activeList!);
 
     final list = provider.lists.firstWhere((l) => l.id == id);
     expect(list.name, 'Groceries');
     expect(list.perStorePrices, isTrue);
+    expect(list.taxRate, 19);
+    expect(list.tax2Enabled, isTrue);
+    expect(list.tax2Rate, 7);
+    expect(list.taxInclusive, isTrue);
   });
 }

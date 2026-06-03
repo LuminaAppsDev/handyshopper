@@ -39,6 +39,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late bool _need;
   late int? _categoryId;
   late String _note;
+  late bool _taxable;
+  late bool _coupon;
 
   // Per-store edits keyed by storeId; persisted on save.
   final Map<int, String> _storePrice = {};
@@ -61,6 +63,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     _need = item?.need ?? true;
     _categoryId = item?.categoryId;
     _note = item?.note ?? '';
+    _taxable = item?.taxable ?? false;
+    _coupon = item?.coupon ?? false;
     // Existing items load their per-store prices; new items start empty.
     _storePricesLoaded = item?.id == null;
     if (item?.id != null) {
@@ -156,6 +160,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           need: _need,
           note: note,
           categoryId: categoryId,
+          taxable: _taxable,
+          coupon: _coupon,
         ),
       );
     } else {
@@ -165,7 +171,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ..price = price
         ..need = _need
         ..note = note
-        ..categoryId = categoryId;
+        ..categoryId = categoryId
+        ..taxable = _taxable
+        ..coupon = _coupon;
       await provider.updateItem(existing);
       itemId = existing.id!;
     }
@@ -305,6 +313,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             value: _need,
             onChanged: (value) => setState(() => _need = value ?? true),
           ),
+          if (showsPrice) ...[
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_t('taxable')),
+              value: _taxable,
+              onChanged: (value) => setState(() => _taxable = value ?? false),
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_t('coupon')),
+              value: _coupon,
+              onChanged: (value) => setState(() => _coupon = value ?? false),
+            ),
+          ],
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(

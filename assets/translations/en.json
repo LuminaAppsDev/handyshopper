@@ -67,5 +67,18 @@
   "delete_store_confirm": "Delete this store? Its per-item prices are removed.",
   "all_stores": "All Stores",
   "aisle": "Aisle",
-  "edit_list": "Edit list"
+  "edit_list": "Edit list",
+  "list_settings": "List Settings",
+  "tax_rate": "Tax rate (%)",
+  "second_tax": "Second tax",
+  "tax_mode": "Tax mode",
+  "tax_add": "Add tax to prices",
+  "tax_included": "Prices include tax (VAT)",
+  "taxable": "Taxable",
+  "coupon": "Coupon",
+  "checkout": "Checkout",
+  "subtotal": "Subtotal",
+  "tax": "Tax",
+  "includes_tax": "Includes tax",
+  "mark_purchased": "Check out"
 }

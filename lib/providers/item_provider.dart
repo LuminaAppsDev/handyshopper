@@ -100,6 +100,20 @@ class ItemProvider with ChangeNotifier {
     await fetchItems();
   }
 
+  /// Marks every needed item as purchased: clears `need` and sets `completed`.
+  /// Used by checkout.
+  Future<void> markNeededPurchased() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final item in _items.where((i) => i.need)) {
+      item
+        ..need = false
+        ..completed = true
+        ..updatedAt = now;
+      await _db.updateItem(item);
+    }
+    await fetchItems();
+  }
+
   /// Sorts the items by [option] and persists the choice on the list row.
   Future<void> sortItems(SortOption option) async {
     final listId = _listId;

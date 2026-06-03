@@ -22,7 +22,7 @@ class DatabaseService {
         _path = path;
 
   /// The current schema version.
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
 
   /// The on-disk database file name (unchanged from v1 to preserve user data).
   static const String dbFileName = 'product_database.db';
@@ -108,6 +108,7 @@ class DatabaseService {
           sort_descending INTEGER NOT NULL DEFAULT 0,
           learn_order INTEGER NOT NULL DEFAULT 0,
           column_flags INTEGER NOT NULL DEFAULT 0,
+          tax_inclusive INTEGER NOT NULL DEFAULT 0,
           sort_order INTEGER NOT NULL DEFAULT 0,
           created_at INTEGER,
           updated_at INTEGER)''')
@@ -216,6 +217,15 @@ class DatabaseService {
     }
     if (oldVersion < 3) {
       await _migrateV2ToV3(db);
+    }
+    // v3 -> v4: per-list tax mode (exclusive vs inclusive VAT). Only a real v3
+    // database needs this ALTER; pre-v3 upgrades already get the current schema
+    // (which includes the column) from _migrateV2ToV3 -> _createSchema.
+    if (oldVersion == 3) {
+      await db.execute(
+        'ALTER TABLE lists ADD COLUMN '
+        'tax_inclusive INTEGER NOT NULL DEFAULT 0',
+      );
     }
   }
 
@@ -706,6 +716,7 @@ class DatabaseService {
     'tax_rate',
     'tax2_rate',
     'tax2_enabled',
+    'tax_inclusive',
     'default_priority',
     'sort_primary',
     'sort_secondary',

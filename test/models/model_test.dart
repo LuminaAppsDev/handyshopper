@@ -54,6 +54,25 @@ void main() {
     });
   });
 
+  group('ShoppingList', () {
+    test('fromMap/toMap round-trips tax fields', () {
+      final list = ShoppingList(
+        id: 3,
+        name: 'Groceries',
+        taxRate: 19,
+        tax2Rate: 7,
+        tax2Enabled: true,
+        taxInclusive: true,
+      );
+      final restored = ShoppingList.fromMap(list.toMap());
+      expect(restored.name, 'Groceries');
+      expect(restored.taxRate, 19);
+      expect(restored.tax2Rate, 7);
+      expect(restored.tax2Enabled, isTrue);
+      expect(restored.taxInclusive, isTrue);
+    });
+  });
+
   group('ListStyle', () {
     test('maps valid indices', () {
       expect(listStyleFromIndex(0), ListStyle.shopping);

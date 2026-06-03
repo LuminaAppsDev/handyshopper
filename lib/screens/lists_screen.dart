@@ -10,6 +10,7 @@ import 'package:handyshopper/models/shopping_list.dart';
 import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
 import 'package:handyshopper/screens/item_list_screen.dart';
+import 'package:handyshopper/screens/list_settings_screen.dart';
 import 'package:handyshopper/services/share_service.dart';
 import 'package:handyshopper/settings_screen.dart';
 import 'package:handyshopper/widgets/emoji_picker.dart';
@@ -129,7 +130,14 @@ class _ListsScreenState extends State<ListsScreen> {
       onSelected: (value) {
         switch (value) {
           case 'edit':
-            unawaited(_showEditListDialog(list));
+            unawaited(
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (context) => ListSettingsScreen(list: list),
+                ),
+              ),
+            );
           case 'icon':
             unawaited(_pickListIcon(list));
           case 'copy':
@@ -241,70 +249,6 @@ class _ListsScreenState extends State<ListsScreen> {
                       Navigator.of(dialogContext).pop();
                     },
                     child: Text(_t('create')),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
-    }
-  }
-
-  Future<void> _showEditListDialog(ShoppingList list) async {
-    final provider = context.read<ListProvider>();
-    final controller = TextEditingController(text: list.name);
-    var perStorePrices = list.perStorePrices;
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (dialogContext, setLocalState) {
-              return AlertDialog(
-                title: Text(_t('edit_list')),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      decoration: InputDecoration(labelText: _t('list_name')),
-                      inputFormatters: [LengthLimitingTextInputFormatter(64)],
-                    ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(_t('per_store_prices')),
-                      value: perStorePrices,
-                      onChanged: (value) => setLocalState(
-                        () => perStorePrices = value ?? false,
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(_t('cancel')),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final name = controller.text.trim();
-                      if (name.isEmpty) {
-                        return;
-                      }
-                      unawaited(
-                        provider.updateListSettings(
-                          list.id!,
-                          name: name,
-                          perStorePrices: perStorePrices,
-                        ),
-                      );
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text(_t('update')),
                   ),
                 ],
               );

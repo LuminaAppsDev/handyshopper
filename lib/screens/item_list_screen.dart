@@ -9,6 +9,7 @@ import 'package:handyshopper/providers/item_provider.dart';
 import 'package:handyshopper/providers/list_provider.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
 import 'package:handyshopper/providers/store_provider.dart';
+import 'package:handyshopper/screens/checkout_screen.dart';
 import 'package:handyshopper/screens/item_detail_screen.dart';
 import 'package:handyshopper/screens/store_screen.dart';
 import 'package:provider/provider.dart';
@@ -148,6 +149,24 @@ class ItemListScreenState extends State<ItemListScreen> {
           ),
         ),
         actions: [
+          if (showsPrice && activeList != null)
+            IconButton(
+              icon: const Icon(Icons.point_of_sale),
+              tooltip: _t('checkout'),
+              onPressed: () {
+                unawaited(
+                  Navigator.push<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (context) => CheckoutScreen(
+                        list: activeList,
+                        storeId: _selectedStoreId,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           if (perStorePrices) _buildStoreSelector(),
           _buildCategoryFilter(),
         ],

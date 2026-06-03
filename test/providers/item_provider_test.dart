@@ -77,6 +77,21 @@ void main() {
     expect(provider.items, isEmpty);
   });
 
+  test('markNeededPurchased clears need and sets completed', () async {
+    final listId = provider.activeListId!;
+    await provider.addItem(Item(listId: listId, name: 'A'));
+    await provider.addItem(Item(listId: listId, name: 'B', need: false));
+
+    await provider.markNeededPurchased();
+
+    final a = provider.items.firstWhere((i) => i.name == 'A');
+    expect(a.need, isFalse);
+    expect(a.completed, isTrue);
+    // B was not needed, so it is left untouched.
+    final b = provider.items.firstWhere((i) => i.name == 'B');
+    expect(b.completed, isFalse);
+  });
+
   test('priceFor and getTotalPrice respect per-store prices', () async {
     final listId = provider.activeListId!;
     final storeId = await service.insertStore(Store(listId: listId, name: 'A'));

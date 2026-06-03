@@ -29,6 +29,48 @@ Future<void> buildLegacyV2Db(
   await db.close();
 }
 
+/// Builds a v3 database with a `lists` table that lacks the `tax_inclusive`
+/// column (added in v4) plus a seeded list, to exercise the v3→v4 upgrade.
+Future<void> buildV3Db(String path) async {
+  final db = await databaseFactoryFfi.openDatabase(
+    path,
+    options: OpenDatabaseOptions(
+      version: 3,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE lists(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            icon TEXT,
+            style INTEGER NOT NULL DEFAULT 0,
+            per_store_prices INTEGER NOT NULL DEFAULT 0,
+            currency_symbol TEXT,
+            tax_rate REAL NOT NULL DEFAULT 0,
+            tax2_rate REAL NOT NULL DEFAULT 0,
+            tax2_enabled INTEGER NOT NULL DEFAULT 0,
+            default_priority INTEGER NOT NULL DEFAULT 3,
+            sort_primary TEXT NOT NULL DEFAULT 'manual',
+            sort_secondary TEXT,
+            sort_descending INTEGER NOT NULL DEFAULT 0,
+            learn_order INTEGER NOT NULL DEFAULT 0,
+            column_flags INTEGER NOT NULL DEFAULT 0,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER,
+            updated_at INTEGER)''');
+        await db.execute(
+          'CREATE TABLE app_meta(key TEXT PRIMARY KEY, value TEXT)',
+        );
+        final id = await db.insert('lists', {'name': 'Groceries'});
+        await db.insert('app_meta', {
+          'key': 'active_list_id',
+          'value': id.toString(),
+        });
+      },
+    ),
+  );
+  await db.close();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
@@ -109,6 +151,25 @@ void main() {
     // A newly inserted item gets a fresh id past the migrated max (1).
     final newId = await service.insertItem(Item(listId: listId, name: 'Bread'));
     expect(newId, greaterThan(1));
+
+    await service.close();
+  });
+
+  test('v3 -> v4 adds tax_inclusive (default false) and preserves lists',
+      () async {
+    await buildV3Db(dbPath);
+    SharedPreferences.setMockInitialValues({});
+
+    final service = DatabaseService(factory: databaseFactoryFfi, path: dbPath);
+    final lists = await service.getLists();
+
+    expect(lists.single.name, 'Groceries'); // row preserved
+    expect(lists.single.taxInclusive, isFalse); // new column defaulted
+
+    // The column is writable post-upgrade.
+    final list = lists.single..taxInclusive = true;
+    await service.updateList(list);
+    expect((await service.getLists()).single.taxInclusive, isTrue);
 
     await service.close();
   });
