@@ -1,38 +1,65 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test: boots the app over an in-memory database and mocked
+// preferences, and verifies the main screen renders.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/main.dart';
 import 'package:handyshopper/providers/settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (tester) async {
+  setUpAll(sqfliteFfiInit);
+
+  late DatabaseService db;
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    // No-isolate factory: runs SQLite on the current isolate so the tester's
+    // fake-async clock can advance the provider's load(). In-memory keeps it
+    // fast and fake-async-friendly.
+    db = DatabaseService(
+      factory: databaseFactoryFfiNoIsolate,
+      path: inMemoryDatabasePath,
+    );
+  });
+
+  tearDown(() async {
+    await db.close();
+  });
+
+  // One end-to-end flow in a single widget test: a second testWidgets would
+  // share the ffi ':memory:' database, so the whole journey lives here.
+  testWidgets('boots, opens a list, and adds an item via the detail editor',
+      (tester) async {
     final settingsProvider = SettingsProvider();
     await settingsProvider.loadSettings();
-
-    // Build our app and trigger a frame.
     await tester.pumpWidget(
-      MyApp(
-        settingsProvider: settingsProvider,
-      ),
+      MyApp(settingsProvider: settingsProvider, databaseService: db),
+    );
+    await tester.pumpAndSettle();
+
+    // Lists screen shows the app title and the seeded default list.
+    expect(find.text('HandyShopper'), findsOneWidget);
+    expect(find.text('Shopping'), findsOneWidget);
+
+    // Tapping the list opens its (empty) item screen.
+    await tester.tap(find.text('Shopping'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Use the + button to add items to the list.'),
+      findsOneWidget,
     );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
+    // Open the detail screen, enter a name, and save.
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Bread');
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Back on the item list, the new item appears.
+    expect(find.text('Bread'), findsOneWidget);
   });
 }
