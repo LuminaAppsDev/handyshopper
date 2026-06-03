@@ -12,6 +12,15 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
+## 2.0.1 - 2026-06-03
+
+### Fixed
+
+- Crash ("A TextEditingController was used after being disposed") when
+  cancelling or confirming the new/rename dialogs for categories, stores and
+  lists, and the custom-unit dialog. The dialogs now own their text controller
+  in a `StatefulWidget` and dispose it only after the dialog is fully gone.
+
 ## 2.0.0 - 2026-06-03
 
 A ground-up rebuild bringing the depth of the classic Palm OS HandyShopper to

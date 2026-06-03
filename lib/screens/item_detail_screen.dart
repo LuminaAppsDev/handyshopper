@@ -414,35 +414,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   }
 
   Future<void> _pickCustomUnit() async {
-    final controller = TextEditingController(text: _unit ?? '');
-    try {
-      final result = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(_t('unit')),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            inputFormatters: [LengthLimitingTextInputFormatter(12)],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(_t('cancel')),
-            ),
-            TextButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext).pop(controller.text.trim()),
-              child: Text(_t('update')),
-            ),
-          ],
-        ),
-      );
-      if (result != null && mounted) {
-        setState(() => _unit = result.isEmpty ? null : result);
-      }
-    } finally {
-      controller.dispose();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _CustomUnitDialog(initial: _unit ?? ''),
+    );
+    if (result != null && mounted) {
+      setState(() => _unit = result.isEmpty ? null : result);
     }
   }
 
@@ -667,6 +644,58 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Custom-unit text dialog. A [StatefulWidget] so its controller is disposed
+/// only when the dialog is fully gone (avoids use-after-dispose during the
+/// dismiss animation). Pops the trimmed text, or null on cancel.
+class _CustomUnitDialog extends StatefulWidget {
+  const _CustomUnitDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_CustomUnitDialog> createState() => _CustomUnitDialogState();
+}
+
+class _CustomUnitDialogState extends State<_CustomUnitDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _t(String key) => AppLocalizations.of(context).translate(key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_t('unit')),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        inputFormatters: [LengthLimitingTextInputFormatter(12)],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(_t('cancel')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: Text(_t('update')),
+        ),
+      ],
     );
   }
 }

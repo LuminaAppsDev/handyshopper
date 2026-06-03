@@ -128,89 +128,100 @@ class CategoryScreen extends StatelessWidget {
     BuildContext context, {
     Category? category,
   }) async {
-    final provider = context.read<CategoryProvider>();
-    final controller = TextEditingController(text: category?.name ?? '');
-    var icon = category?.icon;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _CategoryDialog(
+        provider: context.read<CategoryProvider>(),
+        category: category,
+      ),
+    );
+  }
+}
 
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (dialogContext, setLocalState) {
-              return AlertDialog(
-                title: Text(
-                  _t(
-                    dialogContext,
-                    category == null ? 'new_category' : 'rename',
-                  ),
-                ),
-                content: Row(
-                  children: [
-                    TextButton(
-                      onPressed: () async {
-                        final picked = await showEmojiPicker(dialogContext);
-                        if (picked != null) {
-                          setLocalState(
-                            () => icon = picked.isEmpty ? null : picked,
-                          );
-                        }
-                      },
-                      child: Text(
-                        icon ?? '🏷️',
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: controller,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          labelText: _t(dialogContext, 'category_name'),
-                        ),
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(40),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(_t(dialogContext, 'cancel')),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final name = controller.text.trim();
-                      if (name.isEmpty) {
-                        return;
-                      }
-                      if (category == null) {
-                        unawaited(provider.addCategory(name, icon: icon));
-                      } else {
-                        unawaited(provider.renameCategory(category.id!, name));
-                        if (icon != category.icon) {
-                          unawaited(provider.setIcon(category.id!, icon));
-                        }
-                      }
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text(
-                      _t(
-                        dialogContext,
-                        category == null ? 'create' : 'update',
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
+/// Add/rename category dialog. A [StatefulWidget] so its controller is disposed
+/// only when the dialog is fully gone (avoids use-after-dispose during the
+/// dismiss animation).
+class _CategoryDialog extends StatefulWidget {
+  const _CategoryDialog({required this.provider, this.category});
+
+  final CategoryProvider provider;
+  final Category? category;
+
+  @override
+  State<_CategoryDialog> createState() => _CategoryDialogState();
+}
+
+class _CategoryDialogState extends State<_CategoryDialog> {
+  late final TextEditingController _controller;
+  late String? _icon;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.category?.name ?? '');
+    _icon = widget.category?.icon;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _t(String key) => AppLocalizations.of(context).translate(key);
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      return;
     }
+    final category = widget.category;
+    if (category == null) {
+      unawaited(widget.provider.addCategory(name, icon: _icon));
+    } else {
+      unawaited(widget.provider.renameCategory(category.id!, name));
+      if (_icon != category.icon) {
+        unawaited(widget.provider.setIcon(category.id!, _icon));
+      }
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_t(widget.category == null ? 'new_category' : 'rename')),
+      content: Row(
+        children: [
+          TextButton(
+            onPressed: () async {
+              final picked = await showEmojiPicker(context);
+              if (picked != null && mounted) {
+                setState(() => _icon = picked.isEmpty ? null : picked);
+              }
+            },
+            child: Text(_icon ?? '🏷️', style: const TextStyle(fontSize: 28)),
+          ),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: InputDecoration(labelText: _t('category_name')),
+              inputFormatters: [LengthLimitingTextInputFormatter(40)],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(_t('cancel')),
+        ),
+        TextButton(
+          onPressed: _submit,
+          child: Text(_t(widget.category == null ? 'create' : 'update')),
+        ),
+      ],
+    );
   }
 }

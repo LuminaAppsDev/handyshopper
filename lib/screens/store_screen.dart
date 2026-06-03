@@ -108,52 +108,80 @@ class StoreScreen extends StatelessWidget {
     BuildContext context, {
     Store? store,
   }) async {
-    final provider = context.read<StoreProvider>();
-    final controller = TextEditingController(text: store?.name ?? '');
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: Text(
-              _t(dialogContext, store == null ? 'new_store' : 'rename'),
-            ),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: _t(dialogContext, 'store_name'),
-              ),
-              inputFormatters: [LengthLimitingTextInputFormatter(40)],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(_t(dialogContext, 'cancel')),
-              ),
-              TextButton(
-                onPressed: () {
-                  final name = controller.text.trim();
-                  if (name.isEmpty) {
-                    return;
-                  }
-                  if (store == null) {
-                    unawaited(provider.addStore(name));
-                  } else {
-                    unawaited(provider.renameStore(store.id!, name));
-                  }
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(
-                  _t(dialogContext, store == null ? 'create' : 'update'),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _StoreDialog(
+        provider: context.read<StoreProvider>(),
+        store: store,
+      ),
+    );
+  }
+}
+
+/// Add/rename store dialog. A [StatefulWidget] so its controller is disposed
+/// only when the dialog is fully gone (avoids use-after-dispose during the
+/// dismiss animation).
+class _StoreDialog extends StatefulWidget {
+  const _StoreDialog({required this.provider, this.store});
+
+  final StoreProvider provider;
+  final Store? store;
+
+  @override
+  State<_StoreDialog> createState() => _StoreDialogState();
+}
+
+class _StoreDialogState extends State<_StoreDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.store?.name ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _t(String key) => AppLocalizations.of(context).translate(key);
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      return;
     }
+    final store = widget.store;
+    if (store == null) {
+      unawaited(widget.provider.addStore(name));
+    } else {
+      unawaited(widget.provider.renameStore(store.id!, name));
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_t(widget.store == null ? 'new_store' : 'rename')),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(labelText: _t('store_name')),
+        inputFormatters: [LengthLimitingTextInputFormatter(40)],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(_t('cancel')),
+        ),
+        TextButton(
+          onPressed: _submit,
+          child: Text(_t(widget.store == null ? 'create' : 'update')),
+        ),
+      ],
+    );
   }
 }

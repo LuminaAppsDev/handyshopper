@@ -173,92 +173,11 @@ class _ListsScreenState extends State<ListsScreen> {
   }
 
   Future<void> _showNewListDialog() async {
-    final controller = TextEditingController();
-    var style = ListStyle.shopping;
-    var perStorePrices = false;
-
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (dialogContext, setLocalState) {
-              return AlertDialog(
-                title: Text(_t('new_list')),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      decoration: InputDecoration(labelText: _t('list_name')),
-                      inputFormatters: [LengthLimitingTextInputFormatter(64)],
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButton<ListStyle>(
-                      isExpanded: true,
-                      value: style,
-                      onChanged: (value) =>
-                          setLocalState(() => style = value ?? style),
-                      items: [
-                        DropdownMenuItem(
-                          value: ListStyle.shopping,
-                          child: Text(_t('style_shopping')),
-                        ),
-                        DropdownMenuItem(
-                          value: ListStyle.todo,
-                          child: Text(_t('style_todo')),
-                        ),
-                        DropdownMenuItem(
-                          value: ListStyle.dated,
-                          child: Text(_t('style_dated')),
-                        ),
-                        DropdownMenuItem(
-                          value: ListStyle.checklist,
-                          child: Text(_t('style_checklist')),
-                        ),
-                      ],
-                    ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(_t('per_store_prices')),
-                      value: perStorePrices,
-                      onChanged: (value) =>
-                          setLocalState(() => perStorePrices = value ?? false),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(_t('cancel')),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final name = controller.text.trim();
-                      if (name.isEmpty) {
-                        return;
-                      }
-                      unawaited(
-                        context.read<ListProvider>().createList(
-                              name,
-                              style: style,
-                              perStorePrices: perStorePrices,
-                            ),
-                      );
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text(_t('create')),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
-    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) =>
+          _NewListDialog(provider: context.read<ListProvider>()),
+    );
   }
 
   Future<void> _pickListIcon(ShoppingList list) async {
@@ -354,5 +273,102 @@ class _ListsScreenState extends State<ListsScreen> {
     // Cap the length so an over-long (e.g. imported) list name can't produce a
     // path beyond filesystem limits.
     return sanitized.length <= 64 ? sanitized : sanitized.substring(0, 64);
+  }
+}
+
+/// New-list dialog. A [StatefulWidget] so its controller is disposed only when
+/// the dialog is fully gone (avoids use-after-dispose during the dismiss
+/// animation).
+class _NewListDialog extends StatefulWidget {
+  const _NewListDialog({required this.provider});
+
+  final ListProvider provider;
+
+  @override
+  State<_NewListDialog> createState() => _NewListDialogState();
+}
+
+class _NewListDialogState extends State<_NewListDialog> {
+  final TextEditingController _controller = TextEditingController();
+  ListStyle _style = ListStyle.shopping;
+  bool _perStorePrices = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _t(String key) => AppLocalizations.of(context).translate(key);
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      return;
+    }
+    unawaited(
+      widget.provider.createList(
+        name,
+        style: _style,
+        perStorePrices: _perStorePrices,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_t('new_list')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            decoration: InputDecoration(labelText: _t('list_name')),
+            inputFormatters: [LengthLimitingTextInputFormatter(64)],
+          ),
+          const SizedBox(height: 12),
+          DropdownButton<ListStyle>(
+            isExpanded: true,
+            value: _style,
+            onChanged: (value) => setState(() => _style = value ?? _style),
+            items: [
+              DropdownMenuItem(
+                value: ListStyle.shopping,
+                child: Text(_t('style_shopping')),
+              ),
+              DropdownMenuItem(
+                value: ListStyle.todo,
+                child: Text(_t('style_todo')),
+              ),
+              DropdownMenuItem(
+                value: ListStyle.dated,
+                child: Text(_t('style_dated')),
+              ),
+              DropdownMenuItem(
+                value: ListStyle.checklist,
+                child: Text(_t('style_checklist')),
+              ),
+            ],
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(_t('per_store_prices')),
+            value: _perStorePrices,
+            onChanged: (value) =>
+                setState(() => _perStorePrices = value ?? false),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(_t('cancel')),
+        ),
+        TextButton(onPressed: _submit, child: Text(_t('create'))),
+      ],
+    );
   }
 }
