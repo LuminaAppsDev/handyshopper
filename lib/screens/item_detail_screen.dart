@@ -15,6 +15,7 @@ import 'package:handyshopper/providers/store_provider.dart';
 import 'package:handyshopper/screens/category_screen.dart';
 import 'package:handyshopper/screens/note_editor_screen.dart';
 import 'package:handyshopper/screens/store_screen.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 /// Full-screen editor for adding or editing an item.
@@ -36,11 +37,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;
   late final TextEditingController _priceController;
+  late final TextEditingController _aisleController;
   late bool _need;
   late int? _categoryId;
   late String _note;
   late bool _taxable;
   late bool _coupon;
+  late int _priority;
+  late String? _unit;
+  late int? _itemDate;
+
+  /// Standard units offered in the unit dropdown.
+  static const List<String> _standardUnits = ['lbs', 'ozs', 'gals', 'pts'];
 
   // Per-store edits keyed by storeId; persisted on save.
   final Map<int, String> _storePrice = {};
@@ -60,11 +68,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         TextEditingController(text: (item?.quantity ?? 1.0).toString());
     _priceController =
         TextEditingController(text: item?.price?.toString() ?? '');
+    _aisleController = TextEditingController(text: item?.aisle ?? '');
     _need = item?.need ?? true;
     _categoryId = item?.categoryId;
     _note = item?.note ?? '';
     _taxable = item?.taxable ?? false;
     _coupon = item?.coupon ?? false;
+    _priority = item?.priority ?? 3;
+    _unit = item?.unit;
+    _itemDate = item?.itemDate;
     // Existing items load their per-store prices; new items start empty.
     _storePricesLoaded = item?.id == null;
     if (item?.id != null) {
@@ -97,10 +109,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     _nameController.dispose();
     _quantityController.dispose();
     _priceController.dispose();
+    _aisleController.dispose();
     super.dispose();
   }
 
   String _t(String key) => AppLocalizations.of(context).translate(key);
+
+  String? _aisle() {
+    final text = _aisleController.text.trim();
+    return text.isEmpty ? null : text;
+  }
 
   Future<void> _editNote() async {
     final result = await Navigator.push<String>(
@@ -162,6 +180,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           categoryId: categoryId,
           taxable: _taxable,
           coupon: _coupon,
+          priority: _priority,
+          unit: _unit,
+          aisle: _aisle(),
+          itemDate: _itemDate,
         ),
       );
     } else {
@@ -173,7 +195,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ..note = note
         ..categoryId = categoryId
         ..taxable = _taxable
-        ..coupon = _coupon;
+        ..coupon = _coupon
+        ..priority = _priority
+        ..unit = _unit
+        ..aisle = _aisle()
+        ..itemDate = _itemDate;
       await provider.updateItem(existing);
       itemId = existing.id!;
     }
@@ -289,6 +315,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               LengthLimitingTextInputFormatter(12),
             ],
           ),
+          if (showsPrice) _buildUnitField(),
           if (showsPrice)
             TextField(
               controller: _priceController,
@@ -304,8 +331,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 LengthLimitingTextInputFormatter(12),
               ],
             ),
+          if (showsPrice)
+            TextField(
+              controller: _aisleController,
+              decoration: InputDecoration(labelText: _t('aisle')),
+              inputFormatters: [LengthLimitingTextInputFormatter(16)],
+            ),
           const SizedBox(height: 12),
           _buildCategoryRow(),
+          _buildPriorityField(),
+          if (activeList?.style == ListStyle.dated) _buildDateField(),
           if (perStorePrices) _buildStoresSection(currency),
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
@@ -344,6 +379,124 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUnitField() {
+    // Offer the standard units plus any custom value the item already has.
+    final values = <String?>[
+      null,
+      ..._standardUnits,
+      if (_unit != null && !_standardUnits.contains(_unit)) _unit,
+    ];
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String?>(
+            initialValue: _unit,
+            decoration: InputDecoration(labelText: _t('unit')),
+            items: [
+              for (final value in values)
+                DropdownMenuItem<String?>(
+                  value: value,
+                  child: Text(value ?? _t('none')),
+                ),
+            ],
+            onChanged: (value) => setState(() => _unit = value),
+          ),
+        ),
+        TextButton(
+          onPressed: () => unawaited(_pickCustomUnit()),
+          child: Text(_t('custom')),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickCustomUnit() async {
+    final controller = TextEditingController(text: _unit ?? '');
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(_t('unit')),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            inputFormatters: [LengthLimitingTextInputFormatter(12)],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(_t('cancel')),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(controller.text.trim()),
+              child: Text(_t('update')),
+            ),
+          ],
+        ),
+      );
+      if (result != null && mounted) {
+        setState(() => _unit = result.isEmpty ? null : result);
+      }
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  Widget _buildPriorityField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Text(_t('priority')),
+          const SizedBox(width: 12),
+          SegmentedButton<int>(
+            showSelectedIcon: false,
+            segments: [
+              for (var p = 1; p <= 5; p++)
+                ButtonSegment<int>(value: p, label: Text('$p')),
+            ],
+            selected: {_priority},
+            onSelectionChanged: (selection) =>
+                setState(() => _priority = selection.first),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateField() {
+    final date = _itemDate == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(_itemDate!);
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.event),
+      title: Text(_t('date')),
+      subtitle: Text(
+        date == null ? _t('set_date') : DateFormat.yMMMd().format(date),
+      ),
+      trailing: date == null
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () => setState(() => _itemDate = null),
+            ),
+      onTap: () async {
+        final now = DateTime.now();
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: date ?? now,
+          firstDate: DateTime(now.year - 5),
+          lastDate: DateTime(now.year + 5),
+        );
+        if (picked != null && mounted) {
+          setState(() => _itemDate = picked.millisecondsSinceEpoch);
+        }
+      },
     );
   }
 

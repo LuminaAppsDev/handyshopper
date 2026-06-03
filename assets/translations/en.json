@@ -80,5 +80,14 @@
   "subtotal": "Subtotal",
   "tax": "Tax",
   "includes_tax": "Includes tax",
-  "mark_purchased": "Check out"
+  "mark_purchased": "Check out",
+  "priority": "Priority",
+  "unit": "Unit",
+  "set_date": "Set date",
+  "date": "Date",
+  "columns": "Columns",
+  "sort_by_priority": "Sort by priority",
+  "sort_by_aisle": "Sort by aisle",
+  "sort_by_date": "Sort by date",
+  "custom": "Custom…"
 }

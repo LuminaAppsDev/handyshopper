@@ -80,5 +80,14 @@
   "subtotal": "Zwischensumme",
   "tax": "Steuer",
   "includes_tax": "Enthält Steuer",
-  "mark_purchased": "Bezahlen"
+  "mark_purchased": "Bezahlen",
+  "priority": "Priorität",
+  "unit": "Einheit",
+  "set_date": "Datum festlegen",
+  "date": "Datum",
+  "columns": "Spalten",
+  "sort_by_priority": "Nach Priorität sortieren",
+  "sort_by_aisle": "Nach Gang sortieren",
+  "sort_by_date": "Nach Datum sortieren",
+  "custom": "Benutzerdefiniert…"
 }

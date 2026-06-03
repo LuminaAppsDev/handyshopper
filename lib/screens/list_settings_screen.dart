@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:handyshopper/data/item_columns.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
 import 'package:handyshopper/models/shopping_list.dart';
 import 'package:handyshopper/providers/list_provider.dart';
@@ -26,6 +27,16 @@ class _ListSettingsScreenState extends State<ListSettingsScreen> {
   late bool _perStorePrices;
   late bool _tax2Enabled;
   late bool _taxInclusive;
+  late int _columnFlags;
+
+  /// Columns offered in the Columns section, with their labels.
+  static const Map<ItemColumn, String> _columnKeys = {
+    ItemColumn.quantity: 'quantity',
+    ItemColumn.price: 'price',
+    ItemColumn.priority: 'priority',
+    ItemColumn.aisle: 'aisle',
+    ItemColumn.date: 'date',
+  };
 
   static final _rateFormatter = FilteringTextInputFormatter.allow(
     RegExp(r'^\d*[.,]?\d{0,2}'),
@@ -45,6 +56,7 @@ class _ListSettingsScreenState extends State<ListSettingsScreen> {
     _perStorePrices = list.perStorePrices;
     _tax2Enabled = list.tax2Enabled;
     _taxInclusive = list.taxInclusive;
+    _columnFlags = effectiveColumns(list.columnFlags);
   }
 
   @override
@@ -77,7 +89,8 @@ class _ListSettingsScreenState extends State<ListSettingsScreen> {
       ..taxRate = _parseRate(_taxController)
       ..tax2Enabled = _tax2Enabled
       ..tax2Rate = _tax2Enabled ? _parseRate(_tax2Controller) : 0
-      ..taxInclusive = _taxInclusive;
+      ..taxInclusive = _taxInclusive
+      ..columnFlags = _columnFlags;
     await provider.saveList(widget.list);
     navigator.pop();
   }
@@ -143,6 +156,21 @@ class _ListSettingsScreenState extends State<ListSettingsScreen> {
             value: _taxInclusive,
             onChanged: (value) => setState(() => _taxInclusive = value),
           ),
+          const Divider(),
+          Text(_t('columns')),
+          for (final entry in _columnKeys.entries)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_t(entry.value)),
+              value: hasColumn(_columnFlags, entry.key),
+              onChanged: (value) => setState(
+                () => _columnFlags = toggleColumn(
+                  _columnFlags,
+                  entry.key,
+                  on: value ?? false,
+                ),
+              ),
+            ),
         ],
       ),
     );

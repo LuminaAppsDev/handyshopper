@@ -92,6 +92,26 @@ void main() {
     expect(b.completed, isFalse);
   });
 
+  test('sorts by priority, aisle (empty last) and date (null last)', () async {
+    final listId = provider.activeListId!;
+    await provider.addItem(
+      Item(listId: listId, name: 'Low', priority: 5, aisle: 'B'),
+    );
+    await provider.addItem(
+      Item(listId: listId, name: 'High', priority: 1),
+    ); // no aisle
+    await provider.addItem(
+      Item(listId: listId, name: 'Mid', priority: 2, aisle: 'A'),
+    );
+
+    await provider.sortItems(SortOption.priority);
+    expect(provider.items.map((i) => i.name), ['High', 'Mid', 'Low']);
+
+    await provider.sortItems(SortOption.aisle);
+    // 'A', 'B', then the empty-aisle item last.
+    expect(provider.items.map((i) => i.name), ['Mid', 'Low', 'High']);
+  });
+
   test('priceFor and getTotalPrice respect per-store prices', () async {
     final listId = provider.activeListId!;
     final storeId = await service.insertStore(Store(listId: listId, name: 'A'));

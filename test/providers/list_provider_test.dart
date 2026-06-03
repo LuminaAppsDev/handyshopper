@@ -92,4 +92,14 @@ void main() {
     expect(list.tax2Rate, 7);
     expect(list.taxInclusive, isTrue);
   });
+
+  test('saveList persists columnFlags', () async {
+    final id = provider.activeListId!;
+    provider.activeList!.columnFlags = 42;
+    await provider.saveList(provider.activeList!);
+    expect(
+      provider.lists.firstWhere((l) => l.id == id).columnFlags,
+      42,
+    );
+  });
 }

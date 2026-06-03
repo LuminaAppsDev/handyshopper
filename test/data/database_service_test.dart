@@ -137,15 +137,28 @@ void main() {
     expect((await service.getItems(listId)).single.id, itemId);
   });
 
-  test('item note and category persist', () async {
+  test('item note, category, priority, unit, aisle and date persist', () async {
     final catId =
         await service.insertCategory(Category(listId: listId, name: 'Food'));
     final id = await service.insertItem(
-      Item(listId: listId, name: 'Milk', note: 'organic', categoryId: catId),
+      Item(
+        listId: listId,
+        name: 'Milk',
+        note: 'organic',
+        categoryId: catId,
+        priority: 2,
+        unit: 'gals',
+        aisle: '7',
+        itemDate: 1700000000000,
+      ),
     );
     final item = (await service.getItems(listId)).firstWhere((i) => i.id == id);
     expect(item.note, 'organic');
     expect(item.categoryId, catId);
+    expect(item.priority, 2);
+    expect(item.unit, 'gals');
+    expect(item.aisle, '7');
+    expect(item.itemDate, 1700000000000);
   });
 
   test('updateCategory and deleteCategory', () async {

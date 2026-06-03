@@ -17,6 +17,15 @@ enum SortOption {
   /// Sort by price.
   price,
 
+  /// Sort by priority (1 = highest, first).
+  priority,
+
+  /// Sort by aisle (empty last).
+  aisle,
+
+  /// Sort by date (no date last).
+  date,
+
   /// Manual user-defined order.
   manual,
 }
@@ -181,11 +190,28 @@ class ItemProvider with ChangeNotifier {
         // Sorts by the base price; a selected store's per-store price is
         // intentionally not considered here.
         _items.sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
+      case SortOption.priority:
+        _items.sort((a, b) => a.priority.compareTo(b.priority));
+      case SortOption.aisle:
+        _items.sort(
+          (a, b) => _emptyLast(a.aisle).compareTo(_emptyLast(b.aisle)),
+        );
+      case SortOption.date:
+        _items.sort(
+          (a, b) => (a.itemDate ?? _maxInt).compareTo(b.itemDate ?? _maxInt),
+        );
       case SortOption.manual:
         // Items already arrive ordered by sort_order from the database.
         break;
     }
   }
+
+  // Sorts empty/null strings after non-empty ones.
+  static const String _highChar = '￿';
+  static const int _maxInt = 9007199254740992; // 2^53, past any epoch ms
+
+  String _emptyLast(String? value) =>
+      (value == null || value.isEmpty) ? _highChar : value;
 
   SortOption _sortOptionOf(String key) {
     return SortOption.values.firstWhere(

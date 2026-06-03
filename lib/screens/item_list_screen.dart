@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:handyshopper/data/item_columns.dart';
 import 'package:handyshopper/localization/app_localizations.dart';
 import 'package:handyshopper/models/item.dart';
 import 'package:handyshopper/models/shopping_list.dart';
@@ -12,6 +13,7 @@ import 'package:handyshopper/providers/store_provider.dart';
 import 'package:handyshopper/screens/checkout_screen.dart';
 import 'package:handyshopper/screens/item_detail_screen.dart';
 import 'package:handyshopper/screens/store_screen.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 /// Filter sentinel meaning "items with no category".
@@ -67,7 +69,11 @@ class ItemListScreenState extends State<ItemListScreen> {
     );
   }
 
-  void _showSortingOptions(BuildContext context, {required bool showsPrice}) {
+  void _showSortingOptions(
+    BuildContext context, {
+    required bool showsPrice,
+    required bool dated,
+  }) {
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
     unawaited(
       showModalBottomSheet<void>(
@@ -110,6 +116,40 @@ class ItemListScreenState extends State<ItemListScreen> {
                   },
                 ),
               ListTile(
+                leading: const Icon(Icons.low_priority),
+                title: Text(
+                  AppLocalizations.of(sheetContext)
+                      .translate('sort_by_priority'),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  unawaited(itemProvider.sortItems(SortOption.priority));
+                },
+              ),
+              if (showsPrice)
+                ListTile(
+                  leading: const Icon(Icons.alt_route),
+                  title: Text(
+                    AppLocalizations.of(sheetContext)
+                        .translate('sort_by_aisle'),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    unawaited(itemProvider.sortItems(SortOption.aisle));
+                  },
+                ),
+              if (dated)
+                ListTile(
+                  leading: const Icon(Icons.event),
+                  title: Text(
+                    AppLocalizations.of(sheetContext).translate('sort_by_date'),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    unawaited(itemProvider.sortItems(SortOption.date));
+                  },
+                ),
+              ListTile(
                 leading: const Icon(Icons.drag_handle),
                 title: Text(
                   AppLocalizations.of(sheetContext).translate('sort_manually'),
@@ -135,6 +175,8 @@ class ItemListScreenState extends State<ItemListScreen> {
     final showsPrice =
         (activeList?.style ?? ListStyle.shopping) == ListStyle.shopping;
     final perStorePrices = activeList?.perStorePrices ?? false;
+    final dated = activeList?.style == ListStyle.dated;
+    final columnFlags = activeList?.columnFlags ?? 0;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -182,11 +224,13 @@ class ItemListScreenState extends State<ItemListScreen> {
                   context,
                   showNeedOnly: false,
                   showsPrice: showsPrice,
+                  columnFlags: columnFlags,
                 ),
                 _buildItemList(
                   context,
                   showNeedOnly: true,
                   showsPrice: showsPrice,
+                  columnFlags: columnFlags,
                 ),
               ],
             ),
@@ -239,8 +283,11 @@ class ItemListScreenState extends State<ItemListScreen> {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.sort),
-                  onPressed: () =>
-                      _showSortingOptions(context, showsPrice: showsPrice),
+                  onPressed: () => _showSortingOptions(
+                    context,
+                    showsPrice: showsPrice,
+                    dated: dated,
+                  ),
                 ),
               ],
             ),
@@ -345,6 +392,7 @@ class ItemListScreenState extends State<ItemListScreen> {
     BuildContext context, {
     required bool showNeedOnly,
     required bool showsPrice,
+    required int columnFlags,
   }) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final categoryIcons = {
@@ -411,17 +459,16 @@ class ItemListScreenState extends State<ItemListScreen> {
             unawaited(provider.updateItemOrder(full, setManual: true));
           },
           children: items.map((item) {
-            final quantityDisplay = item.quantity % 1 == 0
-                ? item.quantity.toInt().toString()
-                : item.quantity.toString();
             final displayPrice =
                 showsPrice ? provider.priceFor(item, _selectedStoreId) : null;
-            final priceStr = displayPrice != null
-                ? ' - ${settingsProvider.currencySymbol}'
-                    '${displayPrice.toStringAsFixed(2)}'
-                : '';
             final emoji = categoryIcons[item.categoryId];
             final title = emoji == null ? item.name : '$emoji  ${item.name}';
+            final subtitle = _composeSubtitle(
+              item,
+              columnFlags,
+              displayPrice,
+              settingsProvider.currencySymbol,
+            );
             return ListTile(
               key: ValueKey(item.id),
               // On the "All" tab the checkbox reflects/toggles `need`. On the
@@ -436,7 +483,7 @@ class ItemListScreenState extends State<ItemListScreen> {
                 },
               ),
               title: Text(title),
-              subtitle: Text('Q: $quantityDisplay$priceStr'),
+              subtitle: subtitle.isEmpty ? null : Text(subtitle),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () =>
@@ -448,6 +495,40 @@ class ItemListScreenState extends State<ItemListScreen> {
         );
       },
     );
+  }
+
+  /// Builds the row subtitle from the list's enabled columns.
+  String _composeSubtitle(
+    Item item,
+    int columnFlags,
+    double? price,
+    String currency,
+  ) {
+    final parts = <String>[];
+    if (hasColumn(columnFlags, ItemColumn.quantity)) {
+      final qty = item.quantity % 1 == 0
+          ? item.quantity.toInt().toString()
+          : item.quantity.toString();
+      parts.add('Q: $qty${item.unit == null ? '' : ' ${item.unit}'}');
+    }
+    if (hasColumn(columnFlags, ItemColumn.price) && price != null) {
+      parts.add('$currency${price.toStringAsFixed(2)}');
+    }
+    if (hasColumn(columnFlags, ItemColumn.priority)) {
+      parts.add('P${item.priority}');
+    }
+    if (hasColumn(columnFlags, ItemColumn.aisle) &&
+        (item.aisle?.isNotEmpty ?? false)) {
+      parts.add(item.aisle!);
+    }
+    if (hasColumn(columnFlags, ItemColumn.date) && item.itemDate != null) {
+      parts.add(
+        DateFormat.yMd().format(
+          DateTime.fromMillisecondsSinceEpoch(item.itemDate!),
+        ),
+      );
+    }
+    return parts.join(' · ');
   }
 
   void _showDeleteConfirmationDialog(BuildContext context, int itemId) {
