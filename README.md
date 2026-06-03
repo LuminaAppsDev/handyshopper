@@ -13,11 +13,11 @@ HandyShopper is a mobile application designed to help you keep track of your sho
 
 ## Screenshots
 
-![iPhone 15 Pro Max - 1](screenshots/iPhone15ProMax-1.png)
-
-![iPhone 15 Pro Max - 2](screenshots/iPhone15ProMax-2.png)
-
-![iPhone 15 Pro Max - 4](screenshots/iPhone15ProMax-4.png)
+<p align="center">
+  <img src="screenshots/iPhone15ProMax-1-thumb.png" alt="iPhone 15 Pro Max - 1" width="250" />
+  <img src="screenshots/iPhone15ProMax-2-thumb.png" alt="iPhone 15 Pro Max - 2" width="250" />
+  <img src="screenshots/iPhone15ProMax-4-thumb.png" alt="iPhone 15 Pro Max - 4" width="250" />
+</p>
 
 ## Localizations
 
