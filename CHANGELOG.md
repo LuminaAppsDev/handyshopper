@@ -12,6 +12,19 @@ All notable changes to this project are documented in this file.
 
 ### Removed
 
+## 2.0.2 - 2026-06-03
+
+### Fixed
+
+- Empty-list message ("Use the + button to add items to the list") was barely
+  readable in dark mode — light text on a hardcoded light box. The empty state
+  now uses theme-aware colors.
+
+### Changed
+
+- Hardened the list and category emoji-icon pickers with a mounted/context
+  guard after the picker closes (defensive; no behavior change).
+
 ## 2.0.1 - 2026-06-03
 
 ### Fixed

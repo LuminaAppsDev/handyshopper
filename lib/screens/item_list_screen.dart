@@ -406,25 +406,18 @@ class ItemListScreenState extends State<ItemListScreen> {
             children: [
               const Spacer(),
               Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
+                child: Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      AppLocalizations.of(context).translate('no_products'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context).translate('no_products'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16),
+                    ),
                   ),
                 ),
               ),
