@@ -89,5 +89,8 @@
   "sort_by_priority": "우선순위로 정렬",
   "sort_by_aisle": "통로로 정렬",
   "sort_by_date": "날짜로 정렬",
-  "custom": "사용자 지정…"
+  "custom": "사용자 지정…",
+  "import_question": "가져오기를 어떻게 적용할까요?",
+  "import_replace": "모두 교체",
+  "import_add": "추가"
 }

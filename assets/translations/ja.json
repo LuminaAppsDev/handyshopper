@@ -89,5 +89,8 @@
   "sort_by_priority": "優先度で並べ替え",
   "sort_by_aisle": "通路で並べ替え",
   "sort_by_date": "日付で並べ替え",
-  "custom": "カスタム…"
+  "custom": "カスタム…",
+  "import_question": "インポートをどう適用しますか？",
+  "import_replace": "すべて置き換え",
+  "import_add": "追加"
 }

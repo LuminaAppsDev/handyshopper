@@ -89,5 +89,8 @@
   "sort_by_priority": "Önceliğe göre sırala",
   "sort_by_aisle": "Reyona göre sırala",
   "sort_by_date": "Tarihe göre sırala",
-  "custom": "Özel…"
+  "custom": "Özel…",
+  "import_question": "İçe aktarma nasıl uygulansın?",
+  "import_replace": "Tümünü değiştir",
+  "import_add": "Ekle"
 }

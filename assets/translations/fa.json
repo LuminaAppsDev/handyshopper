@@ -89,5 +89,8 @@
   "sort_by_priority": "مرتب‌سازی بر اساس اولویت",
   "sort_by_aisle": "مرتب‌سازی بر اساس راهرو",
   "sort_by_date": "مرتب‌سازی بر اساس تاریخ",
-  "custom": "سفارشی…"
+  "custom": "سفارشی…",
+  "import_question": "درون‌ریزی چگونه اعمال شود؟",
+  "import_replace": "جایگزینی همه",
+  "import_add": "افزودن"
 }

@@ -89,5 +89,8 @@
   "sort_by_priority": "Сортировать по приоритету",
   "sort_by_aisle": "Сортировать по ряду",
   "sort_by_date": "Сортировать по дате",
-  "custom": "Другое…"
+  "custom": "Другое…",
+  "import_question": "Как применить импорт?",
+  "import_replace": "Заменить все",
+  "import_add": "Добавить"
 }
