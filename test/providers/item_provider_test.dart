@@ -16,7 +16,7 @@ void main() {
       factory: databaseFactoryFfi,
       path: inMemoryDatabasePath,
     );
-    final listId = await service.getActiveListId();
+    final listId = (await service.getActiveListId())!;
     final list = (await service.getLists()).firstWhere((l) => l.id == listId);
     provider = ItemProvider(service)..setActiveList(list);
     await provider.fetchItems();

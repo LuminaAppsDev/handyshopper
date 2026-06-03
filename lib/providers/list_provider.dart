@@ -6,8 +6,9 @@ import 'package:handyshopper/models/shopping_list.dart';
 
 /// Manages the set of lists and tracks which one is active.
 ///
-/// In Phase 0 there is exactly one (default) list, but this provider is the
-/// mechanism by which later phases will scope items to the selected list.
+/// Owns list creation, renaming, copying and deletion, and resolves the active
+/// list (validating it against the lists that actually exist, since lists can
+/// be deleted down to zero).
 class ListProvider with ChangeNotifier {
   /// Creates a [ListProvider] backed by [_db] and begins loading.
   ListProvider(this._db) {
@@ -22,10 +23,10 @@ class ListProvider with ChangeNotifier {
   /// All lists, ordered by their manual position.
   List<ShoppingList> get lists => _lists;
 
-  /// The id of the active list, or `null` before loading completes.
+  /// The id of the active list, or `null` when there are no lists.
   int? get activeListId => _activeListId;
 
-  /// The active list, or `null` if not yet loaded.
+  /// The active list, or `null` if there are no lists.
   ShoppingList? get activeList {
     for (final list in _lists) {
       if (list.id == _activeListId) {
@@ -35,11 +36,80 @@ class ListProvider with ChangeNotifier {
     return null;
   }
 
-  /// Loads all lists and resolves the active list id (seeding a default list
-  /// if the database is empty).
+  /// Loads all lists and resolves a valid active list.
   Future<void> load() async {
-    _activeListId = await _db.getActiveListId();
     _lists = await _db.getLists();
+    final stored = await _db.getActiveListId();
+    await _resolveActive(stored);
     notifyListeners();
+  }
+
+  /// Ensures [_activeListId] points at an existing list, falling back to the
+  /// first list (persisted) or `null` when none remain.
+  Future<void> _resolveActive(int? preferred) async {
+    if (_lists.isEmpty) {
+      _activeListId = null;
+      return;
+    }
+    if (_lists.any((l) => l.id == preferred)) {
+      _activeListId = preferred;
+      return;
+    }
+    _activeListId = _lists.first.id;
+    await _db.setActiveListId(_activeListId!);
+  }
+
+  /// Sets [id] as the active list and persists the choice.
+  Future<void> setActive(int id) async {
+    if (id == _activeListId) {
+      return;
+    }
+    await _db.setActiveListId(id);
+    _activeListId = id;
+    notifyListeners();
+  }
+
+  /// Creates a new list and returns its id.
+  Future<int> createList(
+    String name, {
+    ListStyle style = ListStyle.shopping,
+    bool perStorePrices = false,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final id = await _db.insertList(
+      ShoppingList(
+        name: name,
+        style: style,
+        perStorePrices: perStorePrices,
+        sortOrder: _lists.length,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await load();
+    return id;
+  }
+
+  /// Renames the list with [id].
+  Future<void> renameList(int id, String name) async {
+    final list = _lists.firstWhere((l) => l.id == id)
+      ..name = name
+      ..updatedAt = DateTime.now().millisecondsSinceEpoch;
+    await _db.updateList(list);
+    await load();
+  }
+
+  /// Deletes the list with [id] (and all its contents).
+  Future<void> deleteList(int id) async {
+    await _db.deleteList(id);
+    await load();
+  }
+
+  /// Duplicates the list with [id] as `<name> (copy)` and returns the new id.
+  Future<int> copyList(int id) async {
+    final source = _lists.firstWhere((l) => l.id == id);
+    final newId = await _db.copyList(id, '${source.name} (copy)');
+    await load();
+    return newId;
   }
 }

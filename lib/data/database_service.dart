@@ -1,5 +1,6 @@
 import 'package:handyshopper/models/category.dart';
 import 'package:handyshopper/models/item.dart';
+import 'package:handyshopper/models/item_store_price.dart';
 import 'package:handyshopper/models/shopping_list.dart';
 import 'package:handyshopper/models/store.dart';
 import 'package:path/path.dart';
@@ -329,20 +330,127 @@ class DatabaseService {
     );
   }
 
-  /// Returns the active list id, seeding a default list if none exists.
-  Future<int> getActiveListId() async {
+  /// Deletes the list with [id]. Foreign-key cascade removes its categories,
+  /// stores, items and per-store prices.
+  Future<void> deleteList(int id) async {
+    final db = await database;
+    await db.delete('lists', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Deep-copies the list with [id] under [newName], duplicating its
+  /// categories, stores, items and per-store prices with fresh ids. Returns
+  /// the new list id.
+  Future<int> copyList(int id, String newName) async {
+    final db = await database;
+    return db.transaction((txn) async {
+      final listRows = await txn.query(
+        'lists',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (listRows.isEmpty) {
+        throw ArgumentError('No list with id $id');
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final listMap = Map<String, dynamic>.of(listRows.first)
+        ..remove('id')
+        ..['name'] = newName
+        ..['created_at'] = now
+        ..['updated_at'] = now;
+      final newListId = await txn.insert('lists', listMap);
+
+      final categoryIdMap = <int, int>{};
+      for (final row in await txn.query(
+        'categories',
+        where: 'list_id = ?',
+        whereArgs: [id],
+      )) {
+        final map = Map<String, dynamic>.of(row)
+          ..remove('id')
+          ..['list_id'] = newListId;
+        categoryIdMap[row['id']! as int] = await txn.insert('categories', map);
+      }
+
+      final storeIdMap = <int, int>{};
+      for (final row in await txn.query(
+        'stores',
+        where: 'list_id = ?',
+        whereArgs: [id],
+      )) {
+        final map = Map<String, dynamic>.of(row)
+          ..remove('id')
+          ..['list_id'] = newListId;
+        storeIdMap[row['id']! as int] = await txn.insert('stores', map);
+      }
+
+      final itemIdMap = <int, int>{};
+      for (final row in await txn.query(
+        'items',
+        where: 'list_id = ?',
+        whereArgs: [id],
+      )) {
+        final oldCategoryId = row['category_id'] as int?;
+        final map = Map<String, dynamic>.of(row)
+          ..remove('id')
+          ..['list_id'] = newListId
+          ..['category_id'] =
+              oldCategoryId == null ? null : categoryIdMap[oldCategoryId];
+        itemIdMap[row['id']! as int] = await txn.insert('items', map);
+      }
+
+      for (final row in await _storePriceRows(txn, id)) {
+        final newItemId = itemIdMap[row['item_id']! as int];
+        final newStoreId = storeIdMap[row['store_id']! as int];
+        if (newItemId == null || newStoreId == null) {
+          continue;
+        }
+        final map = Map<String, dynamic>.of(row)
+          ..remove('id')
+          ..['item_id'] = newItemId
+          ..['store_id'] = newStoreId;
+        await txn.insert('item_store_prices', map);
+      }
+
+      return newListId;
+    });
+  }
+
+  /// Returns the per-store prices for every item in [listId].
+  Future<List<ItemStorePrice>> getItemStorePricesForList(int listId) async {
+    final db = await database;
+    final rows = await _storePriceRows(db, listId);
+    return rows.map(ItemStorePrice.fromMap).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _storePriceRows(
+    DatabaseExecutor db,
+    int listId,
+  ) {
+    return db.rawQuery(
+      'SELECT isp.* FROM item_store_prices isp '
+      'JOIN items i ON isp.item_id = i.id WHERE i.list_id = ?',
+      [listId],
+    );
+  }
+
+  /// Returns the stored active list id, or `null` when none is set.
+  ///
+  /// May reference a list that has since been deleted — callers
+  /// (e.g. `ListProvider`) validate it against the current lists. Falls back to
+  /// the first list when no id is stored, but never re-creates a deleted list.
+  Future<int?> getActiveListId() async {
     final db = await database;
     final value = await _meta(db, metaActiveListId);
     if (value != null) {
       return int.parse(value);
     }
-    // Defensive fallback: ensure there is always an active list.
     final lists = await getLists();
     if (lists.isNotEmpty) {
       await setActiveListId(lists.first.id!);
-      return lists.first.id!;
+      return lists.first.id;
     }
-    return _seedDefaultList(db);
+    return null;
   }
 
   /// Persists [listId] as the active list.
@@ -463,5 +571,204 @@ class DatabaseService {
   Future<int> insertStore(Store store) async {
     final db = await database;
     return db.insert('stores', store.toMap()..remove('id'));
+  }
+
+  // --- Backup / export / import -------------------------------------------
+
+  /// Serializes lists (all, or just [listIds]) into a JSON-able envelope.
+  ///
+  /// Each list nests its categories, stores and items; each item nests its
+  /// per-store prices. Stored ids are retained only so [importData] can rebuild
+  /// the relationships.
+  Future<Map<String, dynamic>> exportData({List<int>? listIds}) async {
+    final all = await getLists();
+    final lists = listIds == null
+        ? all
+        : all.where((l) => listIds.contains(l.id)).toList();
+
+    final exported = <Map<String, dynamic>>[];
+    for (final list in lists) {
+      final listId = list.id!;
+      final categories = await getCategories(listId);
+      final stores = await getStores(listId);
+      final items = await getItems(listId);
+      final prices = await getItemStorePricesForList(listId);
+
+      final pricesByItem = <int, List<Map<String, dynamic>>>{};
+      for (final price in prices) {
+        (pricesByItem[price.itemId] ??= []).add(price.toMap()..remove('id'));
+      }
+
+      exported.add({
+        ...list.toMap(),
+        'categories': categories.map((c) => c.toMap()).toList(),
+        'stores': stores.map((s) => s.toMap()).toList(),
+        'items': items.map((item) {
+          return item.toMap()..['storePrices'] = pricesByItem[item.id] ?? [];
+        }).toList(),
+      });
+    }
+
+    return {'appVersion': schemaVersion, 'lists': exported};
+  }
+
+  /// The maximum number of lists accepted from a single import, guarding
+  /// against denial-of-service via an enormous file.
+  static const int maxImportLists = 500;
+
+  // Column allow-lists (excluding `id` and foreign keys, which are set
+  // explicitly). Keys outside these sets in an imported file are discarded so
+  // attacker-supplied JSON can never inject arbitrary SQLite columns.
+  static const Set<String> _listColumns = {
+    'name',
+    'icon',
+    'style',
+    'per_store_prices',
+    'currency_symbol',
+    'tax_rate',
+    'tax2_rate',
+    'tax2_enabled',
+    'default_priority',
+    'sort_primary',
+    'sort_secondary',
+    'sort_descending',
+    'learn_order',
+    'column_flags',
+    'sort_order',
+    'created_at',
+    'updated_at',
+  };
+  static const Set<String> _categoryColumns = {'name', 'icon', 'sort_order'};
+  static const Set<String> _storeColumns = {'name', 'sort_order'};
+  static const Set<String> _itemColumns = {
+    'name',
+    'quantity',
+    'unit',
+    'price',
+    'need',
+    'completed',
+    'note',
+    'taxable',
+    'coupon',
+    'priority',
+    'aisle',
+    'item_date',
+    'auto_delete',
+    'private',
+    'custom_text',
+    'alarm_at',
+    'alarm_sound',
+    'sort_order',
+    'created_at',
+    'updated_at',
+  };
+  static const Set<String> _priceColumns = {'price', 'aisle'};
+
+  /// Imports lists from an [exportData] envelope. Always **additive**: every
+  /// list is created anew with fresh ids (relationships remapped), so existing
+  /// data is preserved and ids never collide. Returns the number of lists
+  /// imported. Accepts both whole-app and single-list envelopes.
+  ///
+  /// Input is treated as untrusted: only known columns are kept and values are
+  /// coerced to SQLite-safe primitives, so a malformed or hostile file cannot
+  /// inject columns or crash the insert.
+  Future<int> importData(Map<String, dynamic> json) async {
+    final lists =
+        (json['lists'] as List?)?.whereType<Map<String, dynamic>>().toList() ??
+            const [];
+    if (lists.isEmpty) {
+      return 0;
+    }
+    if (lists.length > maxImportLists) {
+      throw ArgumentError(
+        'Import exceeds the maximum of $maxImportLists lists',
+      );
+    }
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final list in lists) {
+        final newListId =
+            await txn.insert('lists', _sanitize(list, _listColumns));
+
+        final categoryIdMap = <int, int>{};
+        for (final category in _childList(list, 'categories')) {
+          final map = _sanitize(category, _categoryColumns)
+            ..['list_id'] = newListId;
+          final newId = await txn.insert('categories', map);
+          final oldId = _asInt(category['id']);
+          if (oldId != null) {
+            categoryIdMap[oldId] = newId;
+          }
+        }
+
+        final storeIdMap = <int, int>{};
+        for (final store in _childList(list, 'stores')) {
+          final map = _sanitize(store, _storeColumns)..['list_id'] = newListId;
+          final newId = await txn.insert('stores', map);
+          final oldId = _asInt(store['id']);
+          if (oldId != null) {
+            storeIdMap[oldId] = newId;
+          }
+        }
+
+        for (final item in _childList(list, 'items')) {
+          final oldCategoryId = _asInt(item['category_id']);
+          final map = _sanitize(item, _itemColumns)
+            ..['list_id'] = newListId
+            ..['category_id'] =
+                oldCategoryId == null ? null : categoryIdMap[oldCategoryId];
+          final newItemId = await txn.insert('items', map);
+
+          for (final price in _childList(item, 'storePrices')) {
+            final newStoreId = storeIdMap[_asInt(price['store_id'])];
+            if (newStoreId == null) {
+              continue;
+            }
+            final priceMap = _sanitize(price, _priceColumns)
+              ..['item_id'] = newItemId
+              ..['store_id'] = newStoreId;
+            await txn.insert('item_store_prices', priceMap);
+          }
+        }
+      }
+    });
+    return lists.length;
+  }
+
+  List<Map<String, dynamic>> _childList(Map<String, dynamic> parent, String k) {
+    return (parent[k] as List?)?.whereType<Map<String, dynamic>>().toList() ??
+        const [];
+  }
+
+  /// Builds an insert map containing only [allowed] keys, coercing each value
+  /// to a SQLite-bindable primitive (booleans become 0/1; lists, maps and other
+  /// non-primitives are dropped).
+  Map<String, Object?> _sanitize(
+    Map<String, dynamic> src,
+    Set<String> allowed,
+  ) {
+    final out = <String, Object?>{};
+    for (final key in allowed) {
+      if (!src.containsKey(key)) {
+        continue;
+      }
+      final value = src[key];
+      if (value == null || value is num || value is String) {
+        out[key] = value;
+      } else if (value is bool) {
+        out[key] = value ? 1 : 0;
+      }
+    }
+    return out;
+  }
+
+  int? _asInt(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
   }
 }

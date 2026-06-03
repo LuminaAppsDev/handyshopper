@@ -20,24 +20,34 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
+  /// The canonical English strings, used as a fallback for keys not yet
+  /// translated in the active locale.
+  static const String _fallbackLanguage = 'en';
+
   late Map<String, String> _localizedStrings;
+  Map<String, String> _fallbackStrings = const {};
 
-  /// Loads the localized strings from the JSON asset file.
+  /// Loads the localized strings from the JSON asset file, plus the English
+  /// strings as a fallback (skipped when the active locale is already English).
   Future<bool> load() async {
-    final jsonString = await rootBundle
-        .loadString('assets/translations/${locale.languageCode}.json');
-    final jsonMap = json.decode(jsonString) as Map<String, dynamic>;
-
-    _localizedStrings = jsonMap.map((key, value) {
-      return MapEntry(key, value.toString());
-    });
-
+    _localizedStrings = await _loadLanguage(locale.languageCode);
+    _fallbackStrings = locale.languageCode == _fallbackLanguage
+        ? _localizedStrings
+        : await _loadLanguage(_fallbackLanguage);
     return true;
   }
 
-  /// Returns the translated string for the given [key].
+  Future<Map<String, String>> _loadLanguage(String languageCode) async {
+    final jsonString =
+        await rootBundle.loadString('assets/translations/$languageCode.json');
+    final jsonMap = json.decode(jsonString) as Map<String, dynamic>;
+    return jsonMap.map((key, value) => MapEntry(key, value.toString()));
+  }
+
+  /// Returns the translated string for [key]: the active-locale value, then the
+  /// English fallback, then the key itself.
   String translate(String key) {
-    return _localizedStrings[key] ?? key;
+    return _localizedStrings[key] ?? _fallbackStrings[key] ?? key;
   }
 }
 

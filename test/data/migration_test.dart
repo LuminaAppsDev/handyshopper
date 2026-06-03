@@ -63,7 +63,7 @@ void main() {
     });
 
     final service = DatabaseService(factory: databaseFactoryFfi, path: dbPath);
-    final listId = await service.getActiveListId();
+    final listId = (await service.getActiveListId())!;
     final items = await service.getItems(listId);
 
     // Every row preserved, with its original id.
@@ -95,7 +95,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     final service = DatabaseService(factory: databaseFactoryFfi, path: dbPath);
-    final listId = await service.getActiveListId();
+    final listId = (await service.getActiveListId())!;
     final db = await service.database;
 
     // products table is gone.
@@ -122,7 +122,7 @@ void main() {
     SharedPreferences.setMockInitialValues({'sortOption': 'alphabetical'});
 
     final service = DatabaseService(factory: databaseFactoryFfi, path: dbPath);
-    final listId = await service.getActiveListId();
+    final listId = (await service.getActiveListId())!;
     final items = await service.getItems(listId);
 
     expect(items.map((i) => i.id).toList(), [1, 2]);

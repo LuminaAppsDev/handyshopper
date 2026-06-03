@@ -15,22 +15,30 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('app boots and shows the title and empty state', (tester) async {
+  testWidgets('boots to the lists screen and opens a list', (tester) async {
     final settingsProvider = SettingsProvider();
     await settingsProvider.loadSettings();
 
     await tester.pumpWidget(
       MyApp(
         settingsProvider: settingsProvider,
+        // No-isolate factory: runs SQLite on the current isolate so the
+        // tester's fake-async clock can advance the provider's load().
         databaseService: DatabaseService(
-          factory: databaseFactoryFfi,
+          factory: databaseFactoryFfiNoIsolate,
           path: inMemoryDatabasePath,
         ),
       ),
     );
     await tester.pumpAndSettle();
 
+    // Lists screen shows the app title and the seeded default list.
     expect(find.text('HandyShopper'), findsOneWidget);
+    expect(find.text('Shopping'), findsOneWidget);
+
+    // Tapping the list opens its (empty) item screen.
+    await tester.tap(find.text('Shopping'));
+    await tester.pumpAndSettle();
     expect(
       find.text('Use the + button to add items to the list.'),
       findsOneWidget,

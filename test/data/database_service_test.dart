@@ -3,6 +3,7 @@ import 'package:handyshopper/data/database_service.dart';
 import 'package:handyshopper/models/category.dart';
 import 'package:handyshopper/models/item.dart';
 import 'package:handyshopper/models/shopping_list.dart';
+import 'package:handyshopper/models/store.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -17,7 +18,7 @@ void main() {
       factory: databaseFactoryFfi,
       path: inMemoryDatabasePath,
     );
-    listId = await service.getActiveListId();
+    listId = (await service.getActiveListId())!;
   });
 
   tearDown(() async {
@@ -98,5 +99,41 @@ void main() {
     final items = await service.getItems(listId);
     expect(items.single.id, itemId);
     expect(items.single.categoryId, isNull);
+  });
+
+  test('copyList deep-copies children with fresh, remapped ids', () async {
+    final catId =
+        await service.insertCategory(Category(listId: listId, name: 'Food'));
+    final storeId =
+        await service.insertStore(Store(listId: listId, name: 'Aldi'));
+    final itemId = await service.insertItem(
+      Item(listId: listId, name: 'Milk', categoryId: catId, price: 1),
+    );
+    final db = await service.database;
+    await db.insert('item_store_prices', {
+      'item_id': itemId,
+      'store_id': storeId,
+      'price': 0.9,
+    });
+
+    final newListId = await service.copyList(listId, 'Copy');
+    expect(newListId, isNot(listId));
+
+    final newItems = await service.getItems(newListId);
+    final newCats = await service.getCategories(newListId);
+    final newStores = await service.getStores(newListId);
+    final newPrices = await service.getItemStorePricesForList(newListId);
+
+    expect(newItems.single.name, 'Milk');
+    expect(newItems.single.id, isNot(itemId)); // fresh id
+    expect(newCats.single.name, 'Food');
+    expect(newItems.single.categoryId, newCats.single.id); // remapped
+    expect(newStores.single.name, 'Aldi');
+    expect(newPrices.single.price, 0.9);
+    expect(newPrices.single.itemId, newItems.single.id); // remapped
+    expect(newPrices.single.storeId, newStores.single.id); // remapped
+
+    // Original list is untouched.
+    expect((await service.getItems(listId)).single.id, itemId);
   });
 }

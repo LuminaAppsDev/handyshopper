@@ -30,6 +30,7 @@ environment:
 dependencies:
   cupertino_icons: ^1.0.6
   currency_picker: ^2.0.7
+  file_picker: ^11.0.2
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -39,6 +40,7 @@ dependencies:
   path: ^1.8.3
   path_provider: ^2.0.9
   provider: ^6.0.3
+  share_plus: ^12.0.2
   shared_preferences: ^2.0.7
   sqflite: ^2.0.0+4
   url_launcher: ^6.0.9
